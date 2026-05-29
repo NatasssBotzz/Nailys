@@ -22,16 +22,7 @@ Pakai repo ini sebagai dependency bot baru.
 ## Import dasar
 
 ```js
-import makeWASocket, {
-  Button,
-  ButtonV2,
-  Carousel,
-  AIRich,
-  Swgc,
-  upch,
-  sendSwgc,
-  groupStatus
-} from 'baileys'
+import makeWASocket, { MessageBuilder } from 'baileys'
 ```
 
 ## Channel WhatsApp
@@ -39,24 +30,24 @@ import makeWASocket, {
 Target channel bisa berupa JID newsletter, ID angka, atau link channel.
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', 'test')
+await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', 'test')
 ```
 
 ```js
-await upch(sock, 'https://whatsapp.com/channel/XXXXXXXX', 'test')
+await MessageBuilder.upch(sock, 'https://whatsapp.com/channel/XXXXXXXX', 'test')
 ```
 
 Kirim media ke channel.
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', {
+await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
   image: buffer,
   caption: 'test'
 })
 ```
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', {
+await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
   video: buffer,
   caption: 'test',
   mimetype: 'video/mp4'
@@ -64,7 +55,7 @@ await upch(sock, '120xxxxxxxxxx@newsletter', {
 ```
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', {
+await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
   audio: buffer,
   mimetype: 'audio/ogg; codecs=opus',
   ptt: false
@@ -74,7 +65,7 @@ await upch(sock, '120xxxxxxxxxx@newsletter', {
 Kirim dari pesan yang direply.
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', m, {
+await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', m, {
   caption: 'test'
 })
 ```
@@ -86,13 +77,13 @@ await upch(sock, '120xxxxxxxxxx@newsletter', m, {
 Kirim teks status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', 'test')
+await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', 'test')
 ```
 
 Kirim gambar status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
   type: 'image',
   buffer,
   caption: 'test'
@@ -102,7 +93,7 @@ await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Kirim video status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
   type: 'video',
   buffer,
   caption: 'test',
@@ -113,7 +104,7 @@ await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Kirim audio status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
   type: 'audio',
   buffer,
   mimetype: 'audio/ogg; codecs=opus',
@@ -124,7 +115,7 @@ await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Builder SWGC.
 
 ```js
-await new Swgc(sock)
+await new MessageBuilder.Swgc(sock)
   .target('120xxxxxxxxxx@g.us')
   .text('test')
   .send()
@@ -133,7 +124,7 @@ await new Swgc(sock)
 ## NIXCODE Button
 
 ```js
-await new Button(sock)
+await new MessageBuilder.Button(sock)
   .setTitle('test')
   .setBody('test')
   .setFooter('test')
@@ -147,7 +138,7 @@ await new Button(sock)
 URL button.
 
 ```js
-await new Button(sock)
+await new MessageBuilder.Button(sock)
   .setBody('')
   .addButton('cta_url', {
     display_text: 'test',
@@ -160,7 +151,7 @@ await new Button(sock)
 Copy button.
 
 ```js
-await new Button(sock)
+await new MessageBuilder.Button(sock)
   .setBody('')
   .addButton('cta_copy', {
     display_text: 'test',
@@ -172,7 +163,7 @@ await new Button(sock)
 Booking button.
 
 ```js
-await new Button(sock)
+await new MessageBuilder.Button(sock)
   .setBody('')
   .addButton('booking_confirmation', {
     start_datetime: new Date(Date.now() + 60000).toISOString(),
@@ -201,7 +192,7 @@ await new Button(sock)
 Selection button.
 
 ```js
-await new Button(sock)
+await new MessageBuilder.Button(sock)
   .setBody('')
   .addButton('single_select', {
     title: 'test',
@@ -225,7 +216,7 @@ await new Button(sock)
 Limited offer.
 
 ```js
-await new Button(sock)
+await new MessageBuilder.Button(sock)
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setLimitedOffer({
     text: 'test',
@@ -243,7 +234,7 @@ await new Button(sock)
 ## Carousel
 
 ```js
-const card1 = await new Button(sock)
+const card1 = await new MessageBuilder.Button(sock)
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setBody('test')
   .addButton('quick_reply', {
@@ -252,7 +243,7 @@ const card1 = await new Button(sock)
   })
   .toCard()
 
-const card2 = await new Button(sock)
+const card2 = await new MessageBuilder.Button(sock)
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setBody('test')
   .addButton('cta_url', {
@@ -261,7 +252,7 @@ const card2 = await new Button(sock)
   })
   .toCard()
 
-await new Carousel(sock)
+await new MessageBuilder.Carousel(sock)
   .setBody('test')
   .setFooter('test')
   .addCard([card1, card2])
@@ -271,7 +262,7 @@ await new Carousel(sock)
 Carousel dengan limited offer.
 
 ```js
-await sendCarouselWithLimitOffer(sock, m.chat, {
+await MessageBuilder.sendCarouselWithLimitOffer(sock, m.chat, {
   body: '',
   footer: '',
   cards: [
@@ -301,7 +292,7 @@ await sendCarouselWithLimitOffer(sock, m.chat, {
 ## ButtonV2
 
 ```js
-await new ButtonV2(sock)
+await new MessageBuilder.ButtonV2(sock)
   .setBody('test')
   .setFooter('test')
   .setThumbnail(buffer)
@@ -312,7 +303,7 @@ await new ButtonV2(sock)
 ## AI Rich
 
 ```js
-await new AIRich(sock)
+await new MessageBuilder.AIRich(sock)
   .setTitle('test')
   .addText('test')
   .addCode('javascript', 'console.log("test")')

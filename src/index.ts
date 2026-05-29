@@ -2,7 +2,8 @@ import makeWASocket from './Socket/index'
 
 export * from '../WAProto/index.js'
 export * from './Utils/index'
-export { Button, ButtonV2, Carousel, AIRich, Swgc, upch, sendSwgc, groupStatus } from './Utils/nixcode'
+import * as MessageBuilder from './Utils/nixcode'
+export { MessageBuilder }
 export * from './Types/index'
 export * from './Defaults/index'
 export * from './WABinary/index'
