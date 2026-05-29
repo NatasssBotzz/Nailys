@@ -18,12 +18,14 @@ Pakai repo ini sebagai dependency bot baru.
 }
 ```
 
-
 ## Import dasar
 
 ```js
-import makeWASocket, { MessageBuilder } from 'baileys'
-const { Button, ButtonV2, Carousel, AIRich, Swgc, upch, sendSwgc, groupStatus, sendCarouselWithLimitOffer } = MessageBuilder
+import makeWASocket from 'baileys'
+
+const Naileys = makeWASocket({
+  // ... config auth dll
+})
 ```
 
 ## Channel WhatsApp
@@ -31,24 +33,24 @@ const { Button, ButtonV2, Carousel, AIRich, Swgc, upch, sendSwgc, groupStatus, s
 Target channel bisa berupa JID newsletter, ID angka, atau link channel.
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', 'test')
+await Naileys.upch('120xxxxxxxxxx@newsletter', 'test')
 ```
 
 ```js
-await upch(sock, 'https://whatsapp.com/channel/XXXXXXXX', 'test')
+await Naileys.upch('https://whatsapp.com/channel/XXXXXXXX', 'test')
 ```
 
 Kirim media ke channel.
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', {
+await Naileys.upch('120xxxxxxxxxx@newsletter', {
   image: buffer,
   caption: 'test'
 })
 ```
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', {
+await Naileys.upch('120xxxxxxxxxx@newsletter', {
   video: buffer,
   caption: 'test',
   mimetype: 'video/mp4'
@@ -56,7 +58,7 @@ await upch(sock, '120xxxxxxxxxx@newsletter', {
 ```
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', {
+await Naileys.upch('120xxxxxxxxxx@newsletter', {
   audio: buffer,
   mimetype: 'audio/ogg; codecs=opus',
   ptt: false
@@ -66,7 +68,7 @@ await upch(sock, '120xxxxxxxxxx@newsletter', {
 Kirim dari pesan yang direply.
 
 ```js
-await upch(sock, '120xxxxxxxxxx@newsletter', m, {
+await Naileys.upch('120xxxxxxxxxx@newsletter', m, {
   caption: 'test'
 })
 ```
@@ -78,13 +80,13 @@ await upch(sock, '120xxxxxxxxxx@newsletter', m, {
 Kirim teks status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', 'test')
+await Naileys.sendSwgc('120xxxxxxxxxx@g.us', 'test')
 ```
 
 Kirim gambar status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await Naileys.sendSwgc('120xxxxxxxxxx@g.us', {
   type: 'image',
   buffer,
   caption: 'test'
@@ -94,7 +96,7 @@ await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Kirim video status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await Naileys.sendSwgc('120xxxxxxxxxx@g.us', {
   type: 'video',
   buffer,
   caption: 'test',
@@ -105,7 +107,7 @@ await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Kirim audio status grup.
 
 ```js
-await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await Naileys.sendSwgc('120xxxxxxxxxx@g.us', {
   type: 'audio',
   buffer,
   mimetype: 'audio/ogg; codecs=opus',
@@ -116,7 +118,7 @@ await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Builder SWGC.
 
 ```js
-await new MessageBuilder.Swgc(sock)
+await Naileys.Swgc()
   .target('120xxxxxxxxxx@g.us')
   .text('test')
   .send()
@@ -125,7 +127,7 @@ await new MessageBuilder.Swgc(sock)
 ## NIXCODE Button
 
 ```js
-await new MessageBuilder.Button(sock)
+await Naileys.Button()
   .setTitle('test')
   .setBody('test')
   .setFooter('test')
@@ -139,7 +141,7 @@ await new MessageBuilder.Button(sock)
 URL button.
 
 ```js
-await new MessageBuilder.Button(sock)
+await Naileys.Button()
   .setBody('')
   .addButton('cta_url', {
     display_text: 'test',
@@ -152,7 +154,7 @@ await new MessageBuilder.Button(sock)
 Copy button.
 
 ```js
-await new MessageBuilder.Button(sock)
+await Naileys.Button()
   .setBody('')
   .addButton('cta_copy', {
     display_text: 'test',
@@ -164,7 +166,7 @@ await new MessageBuilder.Button(sock)
 Booking button.
 
 ```js
-await new MessageBuilder.Button(sock)
+await Naileys.Button()
   .setBody('')
   .addButton('booking_confirmation', {
     start_datetime: new Date(Date.now() + 60000).toISOString(),
@@ -193,7 +195,7 @@ await new MessageBuilder.Button(sock)
 Selection button.
 
 ```js
-await new MessageBuilder.Button(sock)
+await Naileys.Button()
   .setBody('')
   .addButton('single_select', {
     title: 'test',
@@ -217,7 +219,7 @@ await new MessageBuilder.Button(sock)
 Limited offer.
 
 ```js
-await new MessageBuilder.Button(sock)
+await Naileys.Button()
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setLimitedOffer({
     text: 'test',
@@ -235,7 +237,7 @@ await new MessageBuilder.Button(sock)
 ## Carousel
 
 ```js
-const card1 = await new MessageBuilder.Button(sock)
+const card1 = await Naileys.Button()
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setBody('test')
   .addButton('quick_reply', {
@@ -244,7 +246,7 @@ const card1 = await new MessageBuilder.Button(sock)
   })
   .toCard()
 
-const card2 = await new MessageBuilder.Button(sock)
+const card2 = await Naileys.Button()
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setBody('test')
   .addButton('cta_url', {
@@ -253,7 +255,7 @@ const card2 = await new MessageBuilder.Button(sock)
   })
   .toCard()
 
-await new MessageBuilder.Carousel(sock)
+await Naileys.Carousel()
   .setBody('test')
   .setFooter('test')
   .addCard([card1, card2])
@@ -263,7 +265,7 @@ await new MessageBuilder.Carousel(sock)
 Carousel dengan limited offer.
 
 ```js
-await sendCarouselWithLimitOffer(sock, m.chat, {
+await Naileys.sendCarouselWithLimitOffer(m.chat, {
   body: '',
   footer: '',
   cards: [
@@ -293,7 +295,7 @@ await sendCarouselWithLimitOffer(sock, m.chat, {
 ## ButtonV2
 
 ```js
-await new MessageBuilder.ButtonV2(sock)
+await Naileys.ButtonV2()
   .setBody('test')
   .setFooter('test')
   .setThumbnail(buffer)
@@ -304,7 +306,7 @@ await new MessageBuilder.ButtonV2(sock)
 ## AI Rich
 
 ```js
-await new MessageBuilder.AIRich(sock)
+await Naileys.AIRich()
   .setTitle('test')
   .addText('test')
   .addCode('javascript', 'console.log("test")')
