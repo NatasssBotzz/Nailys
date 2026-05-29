@@ -378,7 +378,7 @@ export class Button extends BaseBuilder {
 					contextInfo: this._contextInfo
 				}
 			},
-			options
+			options as any
 		)
 	}
 
@@ -457,7 +457,7 @@ export class ButtonV2 extends BaseBuilder {
 					buttons: [...this.buttons]
 				}
 			},
-			options
+			options as any
 		)
 	}
 
@@ -506,7 +506,7 @@ export class Carousel extends BaseBuilder {
 					carouselMessage: { cards: this.cards }
 				}
 			},
-			options
+			options as any
 		)
 	}
 
@@ -840,7 +840,7 @@ export const groupStatus = async (sock: any, groupJid: string, content: PlainObj
 	const cloned = { ...content }
 	const backgroundColor = cloned.backgroundColor
 	delete cloned.backgroundColor
-	const inside = await generateWAMessageContent(cloned, {
+	const inside = await generateWAMessageContent(cloned as any, {
 		upload: sock.waUploadToServer,
 		backgroundColor,
 		logger: sock.logger

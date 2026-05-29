@@ -13,7 +13,7 @@ Pakai repo ini sebagai dependency bot baru.
 ```json
 {
   "dependencies": {
-    "baileys": "github:tasna453/naileys"
+    "baileys": "github:NatasssBotzz/Naileys"
   }
 }
 ```
