@@ -124,10 +124,10 @@ await Naileys.Swgc()
   .send()
 ```
 
-## NIXCODE Button
+## NIXCODE Message (Interactive/Button/AIRich)
 
 ```js
-await Naileys.Button()
+await Naileys.Message()
   .setTitle('test')
   .setBody('test')
   .setFooter('test')
@@ -141,7 +141,7 @@ await Naileys.Button()
 URL button.
 
 ```js
-await Naileys.Button()
+await Naileys.Message()
   .setBody('')
   .addButton('cta_url', {
     display_text: 'test',
@@ -154,7 +154,7 @@ await Naileys.Button()
 Copy button.
 
 ```js
-await Naileys.Button()
+await Naileys.Message()
   .setBody('')
   .addButton('cta_copy', {
     display_text: 'test',
@@ -166,7 +166,7 @@ await Naileys.Button()
 Booking button.
 
 ```js
-await Naileys.Button()
+await Naileys.Message()
   .setBody('')
   .addButton('booking_confirmation', {
     start_datetime: new Date(Date.now() + 60000).toISOString(),
@@ -195,7 +195,7 @@ await Naileys.Button()
 Selection button.
 
 ```js
-await Naileys.Button()
+await Naileys.Message()
   .setBody('')
   .addButton('single_select', {
     title: 'test',
@@ -219,7 +219,7 @@ await Naileys.Button()
 Limited offer.
 
 ```js
-await Naileys.Button()
+await Naileys.Message()
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setLimitedOffer({
     text: 'test',
@@ -237,7 +237,7 @@ await Naileys.Button()
 ## Carousel
 
 ```js
-const card1 = await Naileys.Button()
+const card1 = await Naileys.Message()
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setBody('test')
   .addButton('quick_reply', {
@@ -246,7 +246,7 @@ const card1 = await Naileys.Button()
   })
   .toCard()
 
-const card2 = await Naileys.Button()
+const card2 = await Naileys.Message()
   .setImage(buffer, { mimetype: 'image/jpeg' })
   .setBody('test')
   .addButton('cta_url', {
@@ -292,21 +292,21 @@ await Naileys.sendCarouselWithLimitOffer(m.chat, {
 })
 ```
 
-## ButtonV2
+## Legacy Button (ButtonV2)
 
 ```js
-await Naileys.ButtonV2()
+await Naileys.Message()
   .setBody('test')
   .setFooter('test')
   .setThumbnail(buffer)
-  .addButton('test', 'test')
+  .addButton('test', 'test', 'old')
   .send(m.chat)
 ```
 
 ## AI Rich
 
 ```js
-await Naileys.AIRich()
+await Naileys.Message()
   .setTitle('test')
   .addText('test')
   .addCode('javascript', 'console.log("test")')
