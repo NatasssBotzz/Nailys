@@ -1,0 +1,11 @@
+export declare const DEFAULT_CUSTOM_PAIRING_CODE = "NATASSBZ";
+export declare function onlyNumber(value?: string): string;
+export declare function normalizePhoneNumber(number?: string): string;
+export declare function normalizeCustomPairingCode(code?: string, length?: number): string | null;
+export declare function formatPairingCode(code?: string): string;
+export declare function sleep(ms?: number): Promise<void>;
+export declare function requestCustomPairingCode(sock: any, state?: any, options?: Record<string, any>): Promise<string | null>;
+export declare const requestNatasssPairingCode: typeof requestCustomPairingCode;
+export declare function waitForQrPairing(sock: any, options?: Record<string, any>): Promise<string>;
+export declare function pairing(sock: any, type?: number | Record<string, any>, options?: Record<string, any>): Promise<any>;
+export default pairing;
