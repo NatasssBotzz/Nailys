@@ -208,13 +208,29 @@ class BaseBuilder {
 	}
 }
 
-export class Button extends BaseBuilder {
+
+
+
+
+
+export class Message extends BaseBuilder {
 	private client: any
-	private buttons: any[] = []
 	private data: any
+	private params: PlainObject = {}
+	
+	// Button state
+	private buttons: any[] = []
 	private currentSelectionIndex = -1
 	private currentSectionIndex = -1
-	private params: PlainObject = {}
+
+	// ButtonV2 state
+	private legacyButtons: any[] = []
+	private image: any
+
+	// AIRich state
+	private aiSubmessages: any[] = []
+	private aiSections: any[] = []
+	private richResponseSources: any[] = []
 
 	constructor(client: any) {
 		super()
@@ -223,6 +239,8 @@ export class Button extends BaseBuilder {
 		}
 		this.client = client
 	}
+
+	// --- Common Media/Options ---
 
 	setVideo(input: any, options: PlainObject = {}) {
 		this.data = Buffer.isBuffer(input) ? { video: input, ...options } : { video: { url: input }, ...options }
@@ -247,8 +265,16 @@ export class Button extends BaseBuilder {
 		return this
 	}
 
+	setThumbnail(input: any) {
+		this.image = input
+		return this
+	}
+
+	// --- Button / ButtonV2 ---
+
 	clearButtons() {
 		this.buttons = []
+		this.legacyButtons = []
 		return this
 	}
 
@@ -268,13 +294,25 @@ export class Button extends BaseBuilder {
 		return this
 	}
 
-	addButton(name: string, params: any = {}) {
+	addButton(name: string, params: any = {}, type?: string) {
+		if (params === 'old' || type === 'old' || params?.type === 'old') {
+			this.legacyButtons.push({ buttonId: typeof params === 'string' && params !== 'old' ? params : randomUUID(), buttonText: { displayText: name }, type: 1 })
+			return this
+		}
 		this.buttons.push({ name, buttonParamsJson: formatButtonParams(params) })
 		return this
 	}
 
-	addbutton(name: string, params: any = {}) {
-		return this.addButton(name, params)
+	addbutton(name: string, params: any = {}, type?: string) {
+		return this.addButton(name, params, type)
+	}
+
+	addRawButton(obj: PlainObject) {
+		if (!isObject(obj)) {
+			throw new TypeError('Buttons must be a plain object')
+		}
+		this.legacyButtons.push(obj)
+		return this
 	}
 
 	addReply(display_text = '', id = randomUUID(), options: PlainObject = {}) {
@@ -367,110 +405,220 @@ export class Button extends BaseBuilder {
 		}
 	}
 
-	async build(jid: string, options: PlainObject = {}) {
-		const message = await this.toCard()
-		return generateWAMessageFromContent(
-			jid,
-			{
-				...this._extraPayload,
-				interactiveMessage: {
-					...message,
-					contextInfo: this._contextInfo
-				}
-			},
-			options as any
-		)
-	}
+	// --- AIRich ---
 
-	async send(jid: string, options: PlainObject = {}) {
-		const msg = await this.build(jid, options)
-		await this.client.relayMessage(msg.key.remoteJid, msg.message, {
-			messageId: msg.key.id,
-			additionalNodes: nativeFlowAdditionalNodes,
-			...options
+	addText(text: string) {
+		this.aiSubmessages.push({ messageType: 2, messageText: text })
+		this.aiSections.push({
+			view_model: {
+				primitive: { text, __typename: 'GenAIMarkdownTextUXPrimitive' },
+				__typename: 'GenAISingleLayoutViewModel'
+			}
 		})
-		return msg
+		return this
 	}
-}
 
-export class ButtonV2 extends BaseBuilder {
-	private client: any
-	private image: any
-	private data: any
-	private buttons: any[] = []
+	addCode(language: string, code: string) {
+		this.aiSubmessages.push({
+			messageType: 5,
+			codeMetadata: {
+				codeLanguage: language,
+				codeBlocks: [{ codeContent: code, highlightType: 0 }]
+			}
+		})
+		this.aiSections.push({
+			view_model: {
+				primitive: {
+					language,
+					code_blocks: [{ content: code, type: 'DEFAULT' }],
+					__typename: 'GenAICodeUXPrimitive'
+				},
+				__typename: 'GenAISingleLayoutViewModel'
+			}
+		})
+		return this
+	}
 
-	constructor(client: any) {
-		super()
-		if (!client) {
-			throw new Error('Socket is required')
+	addTable(table: string[][]) {
+		const rows = table.map((items: string[], index: number) => ({ items, ...(index === 0 ? { isHeading: true } : {}) }))
+		this.aiSubmessages.push({ messageType: 4, tableMetadata: { title: '', rows } })
+		this.aiSections.push({
+			view_model: {
+				primitive: {
+					rows: table.map((cells: string[], index: number) => ({ is_header: index === 0, cells })),
+					__typename: 'GenATableUXPrimitive'
+				},
+				__typename: 'GenAISingleLayoutViewModel'
+			}
+		})
+		return this
+	}
+
+	addSource(sources: string[][] = []) {
+		const source = sources.map(([profile_url, url, text]) => ({
+			source_type: 'THIRD_PARTY',
+			source_display_name: text || '',
+			source_subtitle: 'AI',
+			source_url: url || '',
+			favicon: { url: profile_url || '', mime_type: 'image/jpeg', width: 16, height: 16 }
+		}))
+		this.aiSections.push({
+			view_model: {
+				primitive: { sources: source, __typename: 'GenAISearchResultPrimitive' },
+				__typename: 'GenAISingleLayoutViewModel'
+			}
+		})
+		return this
+	}
+
+	addImage(imageUrl: string | string[]) {
+		const urls = Array.isArray(imageUrl) ? imageUrl : [imageUrl]
+		this.aiSubmessages.push({
+			messageType: 1,
+			gridImageMetadata: {
+				gridImageUrl: { imagePreviewUrl: urls[0] },
+				imageUrls: urls.map(url => ({ imagePreviewUrl: url, imageHighResUrl: url, sourceUrl: url }))
+			}
+		})
+		for (const url of urls) {
+			this.aiSections.push({
+				view_model: {
+					primitive: {
+						media: { url, mime_type: 'image/jpeg' },
+						imagine_type: 3,
+						status: { status: 'READY' },
+						__typename: 'GenAIImaginePrimitive'
+					},
+					__typename: 'GenAISingleLayoutViewModel'
+				}
+			})
 		}
-		this.client = client
-	}
-
-	addButton(displayText = '', buttonId = randomUUID()) {
-		this.buttons.push({ buttonId, buttonText: { displayText }, type: 1 })
 		return this
 	}
 
-	addRawButton(obj: PlainObject) {
-		if (!isObject(obj)) {
-			throw new TypeError('Buttons must be a plain object')
-		}
-		this.buttons.push(obj)
+	addReels(items: PlainObject[] = []) {
+		this.aiSubmessages.push({
+			messageType: 9,
+			contentItemsMetadata: {
+				contentType: 1,
+				itemsMetadata: items.map(item => ({
+					reelItem: {
+						title: item.title || '',
+						profileIconUrl: item.profileIconUrl || '',
+						thumbnailUrl: item.thumbnailUrl || '',
+						videoUrl: item.videoUrl || ''
+					}
+				}))
+			}
+		})
+		items.forEach((item, idx) => {
+			this.richResponseSources.push({
+				provider: 'NIXCODE',
+				thumbnailCDNURL: item.thumbnailUrl || '',
+				sourceProviderURL: item.videoUrl || '',
+				sourceQuery: '',
+				faviconCDNURL: item.profileIconUrl || '',
+				citationNumber: idx + 1,
+				sourceTitle: item.title || ''
+			})
+		})
 		return this
 	}
 
-	setThumbnail(input: any) {
-		this.image = input
-		return this
-	}
-
-	setMedia(obj: PlainObject) {
-		if (!isObject(obj)) {
-			throw new TypeError('Media must be a plain object')
-		}
-		this.data = obj
-		return this
-	}
+	// --- Build and Send ---
 
 	async build(jid: string, options: PlainObject = {}) {
-		const thumbnail = this.image ? await resolveJpegThumbnail(this.image) : undefined
-		return generateWAMessageFromContent(
-			jid,
-			{
-				...this._extraPayload,
-				buttonsMessage: {
-					contentText: this._body,
-					footerText: this._footer,
-					...(this.data || {
-						headerType: 6,
-						locationMessage: {
-							degreesLatitude: 0,
-							degreesLongitude: 0,
-							name: this._title,
-							address: this._subtitle,
-							jpegThumbnail: thumbnail
+		if (this.aiSubmessages.length > 0) {
+			const forwarded = options.forwarded !== false
+			const includesUnifiedResponse = options.includesUnifiedResponse !== false
+			const contextInfo = forwarded
+				? { forwardingScore: 1, isForwarded: true, forwardedAiBotMessageInfo: { botJid: '0@bot' }, forwardOrigin: 4, ...this._contextInfo }
+				: this._contextInfo
+			return {
+				messageContextInfo: {
+					deviceListMetadata: {},
+					deviceListMetadataVersion: 2,
+					botMetadata: {
+						messageDisclaimerText: this._title,
+						richResponseSourcesMetadata: { sources: this.richResponseSources }
+					}
+				},
+				botForwardedMessage: {
+					message: {
+						richResponseMessage: {
+							messageType: 1,
+							submessages: this.aiSubmessages,
+							unifiedResponse: {
+								data: includesUnifiedResponse
+									? Buffer.from(JSON.stringify({ response_id: randomUUID(), sections: this.aiSections })).toString('base64')
+									: ''
+							},
+							contextInfo
 						}
-					}),
-					viewOnce: true,
-					contextInfo: this._contextInfo,
-					buttons: [...this.buttons]
+					}
 				}
-			},
-			options as any
-		)
+			}
+		} else if (this.legacyButtons.length > 0) {
+			const thumbnail = this.image ? await resolveJpegThumbnail(this.image) : undefined
+			return generateWAMessageFromContent(
+				jid,
+				{
+					...this._extraPayload,
+					buttonsMessage: {
+						contentText: this._body,
+						footerText: this._footer,
+						...(this.data || {
+							headerType: 6,
+							locationMessage: {
+								degreesLatitude: 0,
+								degreesLongitude: 0,
+								name: this._title,
+								address: this._subtitle,
+								jpegThumbnail: thumbnail
+							}
+						}),
+						viewOnce: true,
+						contextInfo: this._contextInfo,
+						buttons: [...this.legacyButtons]
+					}
+				},
+				options as any
+			)
+		} else {
+			const message = await this.toCard()
+			return generateWAMessageFromContent(
+				jid,
+				{
+					...this._extraPayload,
+					interactiveMessage: {
+						...message,
+						contextInfo: this._contextInfo
+					}
+				},
+				options as any
+			)
+		}
 	}
 
 	async send(jid: string, options: PlainObject = {}) {
-		const msg = await this.build(jid, options)
-		await this.client.relayMessage(msg.key.remoteJid, msg.message, {
-			messageId: msg.key.id,
-			additionalNodes: nativeFlowAdditionalNodes,
-			...options
-		})
-		return msg
+		if (this.aiSubmessages.length > 0) {
+			return await this.client.relayMessage(jid, await this.build(jid, options), options)
+		} else {
+			const msg = (await this.build(jid, options)) as any
+			await this.client.relayMessage(msg.key.remoteJid, msg.message, {
+				messageId: msg.key.id,
+				additionalNodes: nativeFlowAdditionalNodes,
+				...options
+			})
+			return msg
+		}
 	}
 }
+
+// Aliases for backward compatibility
+export const Button = Message
+export const ButtonV2 = Message
+export const AIRich = Message
 
 export class Carousel extends BaseBuilder {
 	private client: any
@@ -518,180 +666,6 @@ export class Carousel extends BaseBuilder {
 			...options
 		})
 		return msg
-	}
-}
-
-export class AIRich {
-	private client: any
-	private title = ''
-	private submessages: any[] = []
-	private sections: any[] = []
-	private richResponseSources: any[] = []
-
-	constructor(client: any) {
-		if (!client) {
-			throw new Error('Socket is required')
-		}
-		this.client = client
-	}
-
-	setTitle(title: string) {
-		this.title = String(title || '')
-		return this
-	}
-
-	addText(text: string) {
-		this.submessages.push({ messageType: 2, messageText: text })
-		this.sections.push({
-			view_model: {
-				primitive: { text, __typename: 'GenAIMarkdownTextUXPrimitive' },
-				__typename: 'GenAISingleLayoutViewModel'
-			}
-		})
-		return this
-	}
-
-	addCode(language: string, code: string) {
-		this.submessages.push({
-			messageType: 5,
-			codeMetadata: {
-				codeLanguage: language,
-				codeBlocks: [{ codeContent: code, highlightType: 0 }]
-			}
-		})
-		this.sections.push({
-			view_model: {
-				primitive: {
-					language,
-					code_blocks: [{ content: code, type: 'DEFAULT' }],
-					__typename: 'GenAICodeUXPrimitive'
-				},
-				__typename: 'GenAISingleLayoutViewModel'
-			}
-		})
-		return this
-	}
-
-	addTable(table: string[][]) {
-		const rows = table.map((items: string[], index: number) => ({ items, ...(index === 0 ? { isHeading: true } : {}) }))
-		this.submessages.push({ messageType: 4, tableMetadata: { title: '', rows } })
-		this.sections.push({
-			view_model: {
-				primitive: {
-					rows: table.map((cells: string[], index: number) => ({ is_header: index === 0, cells })),
-					__typename: 'GenATableUXPrimitive'
-				},
-				__typename: 'GenAISingleLayoutViewModel'
-			}
-		})
-		return this
-	}
-
-	addSource(sources: string[][] = []) {
-		const source = sources.map(([profile_url, url, text]) => ({
-			source_type: 'THIRD_PARTY',
-			source_display_name: text || '',
-			source_subtitle: 'AI',
-			source_url: url || '',
-			favicon: { url: profile_url || '', mime_type: 'image/jpeg', width: 16, height: 16 }
-		}))
-		this.sections.push({
-			view_model: {
-				primitive: { sources: source, __typename: 'GenAISearchResultPrimitive' },
-				__typename: 'GenAISingleLayoutViewModel'
-			}
-		})
-		return this
-	}
-
-	addImage(imageUrl: string | string[]) {
-		const urls = Array.isArray(imageUrl) ? imageUrl : [imageUrl]
-		this.submessages.push({
-			messageType: 1,
-			gridImageMetadata: {
-				gridImageUrl: { imagePreviewUrl: urls[0] },
-				imageUrls: urls.map(url => ({ imagePreviewUrl: url, imageHighResUrl: url, sourceUrl: url }))
-			}
-		})
-		for (const url of urls) {
-			this.sections.push({
-				view_model: {
-					primitive: {
-						media: { url, mime_type: 'image/jpeg' },
-						imagine_type: 3,
-						status: { status: 'READY' },
-						__typename: 'GenAIImaginePrimitive'
-					},
-					__typename: 'GenAISingleLayoutViewModel'
-				}
-			})
-		}
-		return this
-	}
-
-	addReels(items: PlainObject[] = []) {
-		this.submessages.push({
-			messageType: 9,
-			contentItemsMetadata: {
-				contentType: 1,
-				itemsMetadata: items.map(item => ({
-					reelItem: {
-						title: item.title || '',
-						profileIconUrl: item.profileIconUrl || '',
-						thumbnailUrl: item.thumbnailUrl || '',
-						videoUrl: item.videoUrl || ''
-					}
-				}))
-			}
-		})
-		for (const [idx, item] of items.entries()) {
-			this.richResponseSources.push({
-				provider: 'NIXCODE',
-				thumbnailCDNURL: item.thumbnailUrl || '',
-				sourceProviderURL: item.videoUrl || '',
-				sourceQuery: '',
-				faviconCDNURL: item.profileIconUrl || '',
-				citationNumber: idx + 1,
-				sourceTitle: item.title || ''
-			})
-		}
-		return this
-	}
-
-	build(options: PlainObject = {}) {
-		const forwarded = options.forwarded !== false
-		const includesUnifiedResponse = options.includesUnifiedResponse !== false
-		const contextInfo = forwarded
-			? { forwardingScore: 1, isForwarded: true, forwardedAiBotMessageInfo: { botJid: '0@bot' }, forwardOrigin: 4 }
-			: {}
-		return {
-			messageContextInfo: {
-				deviceListMetadata: {},
-				deviceListMetadataVersion: 2,
-				botMetadata: {
-					messageDisclaimerText: this.title,
-					richResponseSourcesMetadata: { sources: this.richResponseSources }
-				}
-			},
-			botForwardedMessage: {
-				message: {
-					richResponseMessage: {
-						messageType: 1,
-						submessages: this.submessages,
-						unifiedResponse: {
-							data: includesUnifiedResponse
-								? Buffer.from(JSON.stringify({ response_id: randomUUID(), sections: this.sections })).toString('base64')
-								: ''
-						},
-						contextInfo
-					}
-				}
-			}
-		}
-	}
-
-	async send(jid: string, options: PlainObject = {}) {
-		return await this.client.relayMessage(jid, this.build(options), options)
 	}
 }
 
