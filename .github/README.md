@@ -23,6 +23,7 @@ Pakai repo ini sebagai dependency bot baru.
 
 ```js
 import makeWASocket, { MessageBuilder } from 'baileys'
+const { Button, ButtonV2, Carousel, AIRich, Swgc, upch, sendSwgc, groupStatus, sendCarouselWithLimitOffer } = MessageBuilder
 ```
 
 ## Channel WhatsApp
@@ -30,24 +31,24 @@ import makeWASocket, { MessageBuilder } from 'baileys'
 Target channel bisa berupa JID newsletter, ID angka, atau link channel.
 
 ```js
-await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', 'test')
+await upch(sock, '120xxxxxxxxxx@newsletter', 'test')
 ```
 
 ```js
-await MessageBuilder.upch(sock, 'https://whatsapp.com/channel/XXXXXXXX', 'test')
+await upch(sock, 'https://whatsapp.com/channel/XXXXXXXX', 'test')
 ```
 
 Kirim media ke channel.
 
 ```js
-await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
+await upch(sock, '120xxxxxxxxxx@newsletter', {
   image: buffer,
   caption: 'test'
 })
 ```
 
 ```js
-await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
+await upch(sock, '120xxxxxxxxxx@newsletter', {
   video: buffer,
   caption: 'test',
   mimetype: 'video/mp4'
@@ -55,7 +56,7 @@ await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
 ```
 
 ```js
-await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
+await upch(sock, '120xxxxxxxxxx@newsletter', {
   audio: buffer,
   mimetype: 'audio/ogg; codecs=opus',
   ptt: false
@@ -65,7 +66,7 @@ await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', {
 Kirim dari pesan yang direply.
 
 ```js
-await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', m, {
+await upch(sock, '120xxxxxxxxxx@newsletter', m, {
   caption: 'test'
 })
 ```
@@ -77,13 +78,13 @@ await MessageBuilder.upch(sock, '120xxxxxxxxxx@newsletter', m, {
 Kirim teks status grup.
 
 ```js
-await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', 'test')
+await sendSwgc(sock, '120xxxxxxxxxx@g.us', 'test')
 ```
 
 Kirim gambar status grup.
 
 ```js
-await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
   type: 'image',
   buffer,
   caption: 'test'
@@ -93,7 +94,7 @@ await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Kirim video status grup.
 
 ```js
-await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
   type: 'video',
   buffer,
   caption: 'test',
@@ -104,7 +105,7 @@ await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
 Kirim audio status grup.
 
 ```js
-await MessageBuilder.sendSwgc(sock, '120xxxxxxxxxx@g.us', {
+await sendSwgc(sock, '120xxxxxxxxxx@g.us', {
   type: 'audio',
   buffer,
   mimetype: 'audio/ogg; codecs=opus',
@@ -262,7 +263,7 @@ await new MessageBuilder.Carousel(sock)
 Carousel dengan limited offer.
 
 ```js
-await MessageBuilder.sendCarouselWithLimitOffer(sock, m.chat, {
+await sendCarouselWithLimitOffer(sock, m.chat, {
   body: '',
   footer: '',
   cards: [
