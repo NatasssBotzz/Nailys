@@ -11,4 +11,3 @@ export declare class SenderChainKey {
     getSeed(): Uint8Array;
     private getDerivative;
 }
-//# sourceMappingURL=sender-chain-key.d.ts.map

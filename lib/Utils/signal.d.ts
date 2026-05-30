@@ -44,4 +44,3 @@ export declare const getNextPreKeysNode: (state: AuthenticationState, count: num
     update: Partial<AuthenticationCreds>;
     node: BinaryNode;
 }>;
-//# sourceMappingURL=signal.d.ts.map

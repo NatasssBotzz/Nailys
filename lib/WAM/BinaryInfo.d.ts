@@ -6,4 +6,3 @@ export declare class BinaryInfo {
     buffer: Buffer[];
     constructor(options?: Partial<BinaryInfo>);
 }
-//# sourceMappingURL=BinaryInfo.d.ts.map

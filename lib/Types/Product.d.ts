@@ -76,4 +76,3 @@ export type GetCatalogOptions = {
     limit?: number;
     jid?: string;
 };
-//# sourceMappingURL=Product.d.ts.map

@@ -14,4 +14,3 @@ export type OfflineNodeProcessorDeps = {
 export declare function makeOfflineNodeProcessor(nodeProcessorMap: Map<MessageType, (node: BinaryNode) => Promise<void>>, deps: OfflineNodeProcessorDeps, batchSize?: number): {
     enqueue: (type: MessageType, node: BinaryNode) => void;
 };
-//# sourceMappingURL=offline-node-processor.d.ts.map

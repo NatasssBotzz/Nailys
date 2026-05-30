@@ -21,4 +21,3 @@ export declare const addTransactionCapability: (state: SignalKeyStore, logger: I
  */
 export declare const assertMeId: (creds: AuthenticationCreds) => string;
 export declare const initAuthCreds: () => AuthenticationCreds;
-//# sourceMappingURL=auth-utils.d.ts.map

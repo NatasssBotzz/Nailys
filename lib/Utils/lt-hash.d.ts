@@ -5,4 +5,3 @@ import { LTHashAntiTampering } from 'whatsapp-rust-bridge';
  * if the same series of mutations was made sequentially.
  */
 export declare const LT_HASH_ANTI_TAMPERING: LTHashAntiTampering;
-//# sourceMappingURL=lt-hash.d.ts.map

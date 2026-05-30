@@ -16,4 +16,3 @@ export type SyncActionResult = ContactsUpsertResult | LidMappingUpdateResult;
  */
 export declare const processContactAction: (action: proto.SyncActionValue.IContactAction, id: string | undefined, logger?: ILogger) => SyncActionResult[];
 export declare const emitSyncActionResults: (ev: BaileysEventEmitter, results: SyncActionResult[]) => void;
-//# sourceMappingURL=sync-action-utils.d.ts.map

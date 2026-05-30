@@ -94,4 +94,3 @@ export type NewChatMessageCapInfo = {
     mv_status?: NewChatMessageCappingMVStatusType;
     capping_status?: NewChatMessageCappingStatusType;
 };
-//# sourceMappingURL=State.d.ts.map

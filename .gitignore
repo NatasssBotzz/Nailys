@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+
+# npm lock — this is a Yarn (Berry) project; never commit npm's lockfile
+package-lock.json
+
+# Yarn (Berry) — never commit the PnP runtime or unplugged native binaries.
+# These are large, platform-specific, and rebuilt on install; committing them
+# is what bloated the repo and made `github:` installs heavy.
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# WhatsApp auth/session output
+session/
+sessions/
+baileys_store*.json
+auth_info*/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Build/test artifacts that should be generated, not committed
+coverage/
+*.tgz
+
+# Source maps — build output, not needed by consumers at runtime
+*.map

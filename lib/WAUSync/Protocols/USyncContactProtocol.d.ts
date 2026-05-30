@@ -7,4 +7,3 @@ export declare class USyncContactProtocol implements USyncQueryProtocol {
     getUserElement(user: USyncUser): BinaryNode;
     parser(node: BinaryNode): boolean;
 }
-//# sourceMappingURL=USyncContactProtocol.d.ts.map

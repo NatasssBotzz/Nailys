@@ -167,4 +167,3 @@ export declare const makeNewsletterSocket: (config: SocketConfig) => {
     fetchNewChatMessageCap: () => Promise<import("../index.js").NewChatMessageCapInfo>;
 };
 export type NewsletterSocket = ReturnType<typeof makeNewsletterSocket>;
-//# sourceMappingURL=newsletter.d.ts.map

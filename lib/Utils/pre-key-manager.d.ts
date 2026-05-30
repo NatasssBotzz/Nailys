@@ -25,4 +25,3 @@ export declare class PreKeyManager {
      */
     validateDeletions(data: SignalDataSet, keyType: keyof SignalDataTypeMap): Promise<void>;
 }
-//# sourceMappingURL=pre-key-manager.d.ts.map

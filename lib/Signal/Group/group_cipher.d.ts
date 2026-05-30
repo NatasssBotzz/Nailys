@@ -14,4 +14,3 @@ export declare class GroupCipher {
     private getPlainText;
     private getCipherText;
 }
-//# sourceMappingURL=group_cipher.d.ts.map

@@ -214,4 +214,3 @@ export declare const makeBusinessSocket: (config: SocketConfig) => {
     fetchAccountReachoutTimelock: () => Promise<import("../index.js").ReachoutTimelockState>;
     fetchNewChatMessageCap: () => Promise<import("../index.js").NewChatMessageCapInfo>;
 };
-//# sourceMappingURL=business.d.ts.map

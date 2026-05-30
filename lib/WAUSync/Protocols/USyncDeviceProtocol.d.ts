@@ -20,4 +20,3 @@ export declare class USyncDeviceProtocol implements USyncQueryProtocol {
     getUserElement(): BinaryNode | null;
     parser(node: BinaryNode): ParsedDeviceInfo;
 }
-//# sourceMappingURL=USyncDeviceProtocol.d.ts.map

@@ -20,4 +20,3 @@ export declare function uploadingNecessaryImagesOfProduct<T extends ProductUpdat
 export declare const uploadingNecessaryImages: (images: WAMediaUpload[], waUploadToServer: WAMediaUploadFunction, timeoutMs?: number) => Promise<{
     url: string;
 }[]>;
-//# sourceMappingURL=business.d.ts.map

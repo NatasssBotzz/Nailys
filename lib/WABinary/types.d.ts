@@ -16,4 +16,3 @@ export type BinaryNode = {
 export type BinaryNodeAttributes = BinaryNode['attrs'];
 export type BinaryNodeData = BinaryNode['content'];
 export type BinaryNodeCodingOptions = typeof constants;
-//# sourceMappingURL=types.d.ts.map

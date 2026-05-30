@@ -23,4 +23,3 @@ export interface USyncQueryProtocol {
      */
     parser: (data: BinaryNode) => unknown;
 }
-//# sourceMappingURL=USync.d.ts.map

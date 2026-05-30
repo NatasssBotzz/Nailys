@@ -10,4 +10,3 @@ export declare class WebSocketClient extends AbstractSocketClient {
     close(): Promise<void>;
     send(str: string | Uint8Array, cb?: (err?: Error) => void): boolean;
 }
-//# sourceMappingURL=websocket.d.ts.map

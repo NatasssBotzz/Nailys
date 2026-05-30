@@ -33,4 +33,3 @@ type BaileysBufferableEventEmitter = BaileysEventEmitter & {
  */
 export declare const makeEventBuffer: (logger: ILogger) => BaileysBufferableEventEmitter;
 export {};
-//# sourceMappingURL=event-buffer.d.ts.map

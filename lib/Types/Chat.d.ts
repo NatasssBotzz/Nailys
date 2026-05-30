@@ -121,4 +121,3 @@ export type InitialReceivedChatsState = {
 export type InitialAppStateSyncOptions = {
     accountSettings: AccountSettings;
 };
-//# sourceMappingURL=Chat.d.ts.map

@@ -84,4 +84,3 @@ export interface SignalRepositoryWithLIDStore extends SignalRepository {
     close?: () => void;
 }
 export {};
-//# sourceMappingURL=Signal.d.ts.map

@@ -23,4 +23,3 @@ export interface Contact {
     imgUrl?: string | null;
     status?: string;
 }
-//# sourceMappingURL=Contact.d.ts.map

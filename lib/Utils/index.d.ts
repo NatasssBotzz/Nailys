@@ -20,6 +20,5 @@ export * from './companion-reg-client-utils.js';
 export * from './identity-change-handler.js';
 export * from './stanza-ack.js';
 export * from './nixcode.js';
-//# sourceMappingURL=index.d.ts.map
-export * from './pairing'
+export * from './pairing.js';
 export * from './channel.js';

@@ -14,4 +14,3 @@ export declare class SenderKeyDistributionMessage extends CiphertextMessage {
     getSignatureKey(): Uint8Array;
     getId(): number;
 }
-//# sourceMappingURL=sender-key-distribution-message.d.ts.map

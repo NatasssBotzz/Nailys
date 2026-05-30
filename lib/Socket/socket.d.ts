@@ -56,4 +56,3 @@ export declare const makeSocket: (config: SocketConfig) => {
     fetchAccountReachoutTimelock: () => Promise<ReachoutTimelockState>;
     fetchNewChatMessageCap: () => Promise<NewChatMessageCapInfo>;
 };
-//# sourceMappingURL=socket.d.ts.map

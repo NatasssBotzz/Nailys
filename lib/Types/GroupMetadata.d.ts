@@ -68,4 +68,3 @@ export interface GroupModificationResponse {
         [key: string]: {};
     };
 }
-//# sourceMappingURL=GroupMetadata.d.ts.map

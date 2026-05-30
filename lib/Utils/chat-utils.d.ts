@@ -97,4 +97,3 @@ export declare const decodePatches: (name: WAPatchName, syncds: proto.ISyncdPatc
 export declare const chatModificationToAppPatch: (mod: ChatModification, jid: string) => WAPatchCreate;
 export declare const processSyncAction: (syncAction: ChatMutation, ev: BaileysEventEmitter, me: Contact, initialSyncOpts?: InitialAppStateSyncOptions, logger?: ILogger) => void;
 export {};
-//# sourceMappingURL=chat-utils.d.ts.map

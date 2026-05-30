@@ -258,16 +258,96 @@ declare const makeWASocket: (config: UserFacingSocketConfig) => {
     fetchNewChatMessageCap: () => Promise<import("../index.js").NewChatMessageCapInfo>;
 } & {
     pairing: (type?: number | any, options?: any) => Promise<any>;
-    sendSwgc: (target: string, input: any, options?: any) => Promise<any>;
+    requestCustomPairingCode: (options?: any) => Promise<any>;
+    waitForQrPairing: (options?: any) => Promise<unknown>;
+    sendSwgc: (target: string, input: any, options?: any) => Promise<import("../index.js").WAMessage>;
     upch: (target: string, input: any, options?: any) => Promise<any>;
     toch: (target: string, input: any, options?: any) => Promise<any>;
     ptvch: (target: string, input: any, options?: any) => Promise<any>;
-    groupStatus: (groupJid: string, content: any, options?: any) => Promise<any>;
-    sendCarouselWithLimitOffer: (jid: string, content?: any, options?: any) => Promise<any>;
-    sendInteractiveCardLimitOffer: (jid: string, content?: any, options?: any) => Promise<any>;
-    sendStickerPack: (jid: string, stickerPack: any, options?: any) => Promise<any>;
-    prepareStickerPackMessage: (stickerPack: any, options?: any) => Promise<any>;
-    sendStickerPackLink: (jid: string, code?: string, options?: any) => Promise<any>;
+    groupStatus: (groupJid: string, content: any, options?: any) => Promise<import("../index.js").WAMessage>;
+    sendCarouselWithLimitOffer: (jid: string, content?: any, options?: any) => Promise<import("../index.js").WAMessage>;
+    sendInteractiveCardLimitOffer: (jid: string, content?: any, options?: any) => Promise<import("../index.js").WAMessage>;
+    sendStickerPack: (jid: string, stickerPack: any, options?: any) => Promise<import("../index.js").WAMessage | null>;
+    prepareStickerPackMessage: (stickerPack: any, options?: any) => Promise<{
+        isBatched: boolean;
+        stickerPackMessage: import("../index.js").proto.Message.StickerPackMessage;
+        meta: {
+            stickerPackId: any;
+            zipBuffer: unknown;
+            trayThumb: {
+                buffer: any;
+                width: number;
+                height: number;
+            };
+            entries: {
+                index: number;
+                buffer: Buffer<any>;
+                fileName: string;
+                isAnimated: boolean;
+                isLottie: boolean;
+                mimetype: string;
+                emojis: string[];
+                accessibilityLabel: string;
+            }[];
+            uploadedPack: {
+                url: any;
+                directPath: any;
+                handle: any;
+                mediaKey: NonSharedBuffer;
+                fileEncSha256: NonSharedBuffer;
+                fileSha256: NonSharedBuffer;
+                fileLength: number;
+                fileName: string;
+                mediaKeyTimestamp: number;
+            };
+            uploadedThumb: any;
+        };
+    } | {
+        isBatched: boolean;
+        stickerPackMessage: import("../index.js").proto.Message.StickerPackMessage[];
+        meta: {
+            stickerPackId: any;
+            zipBuffer: unknown;
+            trayThumb: {
+                buffer: any;
+                width: number;
+                height: number;
+            };
+            entries: {
+                index: number;
+                buffer: Buffer<any>;
+                fileName: string;
+                isAnimated: boolean;
+                isLottie: boolean;
+                mimetype: string;
+                emojis: string[];
+                accessibilityLabel: string;
+            }[];
+            uploadedPack: {
+                url: any;
+                directPath: any;
+                handle: any;
+                mediaKey: NonSharedBuffer;
+                fileEncSha256: NonSharedBuffer;
+                fileSha256: NonSharedBuffer;
+                fileLength: number;
+                fileName: string;
+                mediaKeyTimestamp: number;
+            };
+            uploadedThumb: any;
+        }[];
+    }>;
+    sendStickerPackLink: (jid: string, code?: string, options?: any) => Promise<{
+        extendedTextMessage: {
+            text: string;
+            matchedText: string;
+            title: any;
+            description: any;
+            previewType: string;
+            jpegThumbnail: any;
+            inviteLinkGroupTypeV2: string;
+        };
+    }>;
     Message: () => MessageBuilder.Button;
     Button: () => MessageBuilder.Button;
     ButtonV2: () => MessageBuilder.ButtonV2;
@@ -275,7 +355,79 @@ declare const makeWASocket: (config: UserFacingSocketConfig) => {
     AIRich: () => MessageBuilder.AIRich;
     Swgc: () => MessageBuilder.Swgc;
     StickerPack: () => MessageBuilder.StickerPack;
-    sticker: () => any;
-}
+    sticker: () => {
+        send: (jid: any, stickerPack: any, options?: {}) => Promise<import("../index.js").WAMessage | null>;
+        prepare: (stickerPack: any, options?: {}) => Promise<{
+            isBatched: boolean;
+            stickerPackMessage: import("../index.js").proto.Message.StickerPackMessage;
+            meta: {
+                stickerPackId: any;
+                zipBuffer: unknown;
+                trayThumb: {
+                    buffer: any;
+                    width: number;
+                    height: number;
+                };
+                entries: {
+                    index: number;
+                    buffer: Buffer<any>;
+                    fileName: string;
+                    isAnimated: boolean;
+                    isLottie: boolean;
+                    mimetype: string;
+                    emojis: string[];
+                    accessibilityLabel: string;
+                }[];
+                uploadedPack: {
+                    url: any;
+                    directPath: any;
+                    handle: any;
+                    mediaKey: NonSharedBuffer;
+                    fileEncSha256: NonSharedBuffer;
+                    fileSha256: NonSharedBuffer;
+                    fileLength: number;
+                    fileName: string;
+                    mediaKeyTimestamp: number;
+                };
+                uploadedThumb: any;
+            };
+        } | {
+            isBatched: boolean;
+            stickerPackMessage: import("../index.js").proto.Message.StickerPackMessage[];
+            meta: {
+                stickerPackId: any;
+                zipBuffer: unknown;
+                trayThumb: {
+                    buffer: any;
+                    width: number;
+                    height: number;
+                };
+                entries: {
+                    index: number;
+                    buffer: Buffer<any>;
+                    fileName: string;
+                    isAnimated: boolean;
+                    isLottie: boolean;
+                    mimetype: string;
+                    emojis: string[];
+                    accessibilityLabel: string;
+                }[];
+                uploadedPack: {
+                    url: any;
+                    directPath: any;
+                    handle: any;
+                    mediaKey: NonSharedBuffer;
+                    fileEncSha256: NonSharedBuffer;
+                    fileSha256: NonSharedBuffer;
+                    fileLength: number;
+                    fileName: string;
+                    mediaKeyTimestamp: number;
+                };
+                uploadedThumb: any;
+            }[];
+        }>;
+        patch: () => any;
+        normalizeInput: (input: any) => any;
+    };
+};
 export default makeWASocket;
-//# sourceMappingURL=index.d.ts.map

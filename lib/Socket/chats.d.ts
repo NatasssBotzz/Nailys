@@ -121,4 +121,3 @@ export declare const makeChatsSocket: (config: SocketConfig) => {
     fetchAccountReachoutTimelock: () => Promise<import("../Types/index.js").ReachoutTimelockState>;
     fetchNewChatMessageCap: () => Promise<import("../Types/index.js").NewChatMessageCapInfo>;
 };
-//# sourceMappingURL=chats.d.ts.map

@@ -158,4 +158,3 @@ export declare const makeGroupsSocket: (config: SocketConfig) => {
 };
 export declare const extractGroupMetadata: (result: BinaryNode) => GroupMetadata;
 export type GroupsSocket = ReturnType<typeof makeGroupsSocket>;
-//# sourceMappingURL=groups.d.ts.map

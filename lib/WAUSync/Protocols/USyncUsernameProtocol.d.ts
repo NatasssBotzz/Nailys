@@ -7,4 +7,3 @@ export declare class USyncUsernameProtocol implements USyncQueryProtocol {
     getUserElement(user: USyncUser): BinaryNode | null;
     parser(node: BinaryNode): string | null;
 }
-//# sourceMappingURL=USyncUsernameProtocol.d.ts.map

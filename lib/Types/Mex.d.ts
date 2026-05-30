@@ -138,4 +138,3 @@ export interface NewsletterMetadata {
         description?: string;
     };
 }
-//# sourceMappingURL=Mex.d.ts.map

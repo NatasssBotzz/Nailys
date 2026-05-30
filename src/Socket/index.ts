@@ -3,7 +3,7 @@ import type { UserFacingSocketConfig } from '../Types'
 import { makeCommunitiesSocket } from './communities'
 import * as MessageBuilder from '../Utils/nixcode'
 import * as ChannelHelper from '../Utils/channel'
-import { pairing as pairingHelper } from '../Utils/pairing'
+import { pairing as pairingHelper, requestCustomPairingCode as requestCustomPairingCodeHelper, waitForQrPairing as waitForQrPairingHelper } from '../Utils/pairing'
 
 // export the last socket layer
 const makeWASocket = (config: UserFacingSocketConfig) => {
@@ -20,6 +20,11 @@ const makeWASocket = (config: UserFacingSocketConfig) => {
 
 	const ext = {
 		pairing: (type: number | any = 0, options?: any) => pairingHelper(sock, type, options),
+		// One-call helpers so consumers never need to reimplement the pairing flow
+		// or ship a separate "pairhelper" library. Both delegate to the built-in,
+		// battle-tested implementation in Utils/pairing.ts.
+		requestCustomPairingCode: (options?: any) => requestCustomPairingCodeHelper(sock, undefined, options),
+		waitForQrPairing: (options?: any) => waitForQrPairingHelper(sock, options),
 		sendSwgc: (target: string, input: any, options?: any) => MessageBuilder.sendSwgc(sock, target, input, options),
 		upch: (target: string, input: any, options?: any) => ChannelHelper.upch(sock, target, input, options),
 		toch: (target: string, input: any, options?: any) => ChannelHelper.toch(sock, target, input, options),

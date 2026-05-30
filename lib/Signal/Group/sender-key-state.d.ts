@@ -36,4 +36,3 @@ export declare class SenderKeyState {
     getStructure(): SenderKeyStateStructure;
 }
 export {};
-//# sourceMappingURL=sender-key-state.d.ts.map

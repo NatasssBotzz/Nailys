@@ -14,4 +14,3 @@ export declare enum CompanionWebClientType {
 export declare const getCompanionWebClientType: ([os, browserName]: WABrowserDescription) => CompanionWebClientType;
 export declare const getCompanionPlatformId: (browser: WABrowserDescription) => string;
 export declare const buildPairingQRData: (ref: string, noiseKeyB64: string, identityKeyB64: string, advB64: string, browser: WABrowserDescription) => string;
-//# sourceMappingURL=companion-reg-client-utils.d.ts.map

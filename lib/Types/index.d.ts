@@ -62,4 +62,3 @@ export type CurveKeyPair = {
     private: Uint8Array;
     public: Uint8Array;
 };
-//# sourceMappingURL=index.d.ts.map

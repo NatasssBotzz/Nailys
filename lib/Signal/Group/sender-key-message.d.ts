@@ -16,4 +16,3 @@ export declare class SenderKeyMessage extends CiphertextMessage {
     serialize(): Uint8Array;
     getType(): number;
 }
-//# sourceMappingURL=sender-key-message.d.ts.map

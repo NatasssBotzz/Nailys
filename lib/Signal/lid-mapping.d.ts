@@ -20,4 +20,3 @@ export declare class LIDMappingStore {
      */
     close(): void;
 }
-//# sourceMappingURL=lid-mapping.d.ts.map

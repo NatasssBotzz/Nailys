@@ -12,4 +12,3 @@ export declare class GroupSessionBuilder {
     create(senderKeyName: SenderKeyName): Promise<SenderKeyDistributionMessage>;
 }
 export {};
-//# sourceMappingURL=group-session-builder.d.ts.map

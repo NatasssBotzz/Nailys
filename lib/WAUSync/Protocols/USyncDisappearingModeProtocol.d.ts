@@ -10,4 +10,3 @@ export declare class USyncDisappearingModeProtocol implements USyncQueryProtocol
     getUserElement(): null;
     parser(node: BinaryNode): DisappearingModeData | undefined;
 }
-//# sourceMappingURL=USyncDisappearingModeProtocol.d.ts.map

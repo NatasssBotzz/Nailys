@@ -34,4 +34,3 @@ type StoreTcTokensParams = {
 };
 export declare function storeTcTokensFromIqResult({ result, fallbackJid, keys, getLIDForPN, onNewJidStored }: StoreTcTokensParams): Promise<void>;
 export {};
-//# sourceMappingURL=tc-token-utils.d.ts.map

@@ -6,7 +6,6 @@ import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import sharp from 'sharp'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { createRequire } from 'module'
@@ -15,6 +14,34 @@ import archiverPkg from 'archiver'
 import { proto } from '../../WAProto/index.js'
 import { generateWAMessageContent, generateWAMessageFromContent, getContentType, prepareWAMessageMedia } from './messages.js'
 import { downloadContentFromMessage, encryptedStream } from './messages-media.js'
+
+// Lazy, optional sharp loader. sharp pulls in libvips (a large native binary),
+// which is what makes installing this library heavy on low-spec panels. By
+// loading it on first use instead of at import time, the library boots fine
+// without sharp installed — only the few image helpers below need it, and they
+// fail with a clear, actionable message instead of crashing the whole module.
+const __sharpRequire = createRequire(import.meta.url)
+let __sharp
+let __sharpTried = false
+function loadSharp() {
+  if (__sharpTried) {
+    if (!__sharp) {
+      throw new Error(
+        "Fitur ini butuh paket 'sharp' tapi tidak terpasang. " +
+        "Pasang dengan: npm install sharp  (opsional, hanya untuk resize/thumbnail/sticker)."
+      )
+    }
+    return __sharp
+  }
+  __sharpTried = true
+  try {
+    const mod = __sharpRequire('sharp')
+    __sharp = mod?.default || mod
+  } catch {
+    __sharp = undefined
+  }
+  return loadSharp()
+}
 
 function extractIE(text, { extract = true, hyperlink = true, citation = true, latex = true } = {}) {
   if (!extract) return { text, ie: [] }
@@ -134,7 +161,7 @@ async function resolveJpegThumbnail(input) {
 
     if (!Buffer.isBuffer(source) || !source.length) return Buffer.alloc(0)
 
-    return await sharp(source)
+    return await loadSharp()(source)
       .resize(300, 300, { fit: 'cover' })
       .jpeg({ quality: 82, mozjpeg: true })
       .toBuffer()
@@ -663,11 +690,21 @@ async function groupStatus(sock, jid, content, options = {}) {
 
   if (echoPromise) {
     const echo = await echoPromise
+    msg.swgcEcho = echo
     if (!echo.ok) {
-      throw new Error(
-        'Relay SWGC diterima server, tapi tidak ada echo groupStatusMessageV2 dari WhatsApp. ' +
-        'Biasanya berarti format belum dirender sebagai status grup, bot belum sync, atau akun WhatsApp belum support fitur ini.'
-      )
+      // The relay was already accepted by the server above; a missing echo only
+      // means we could not positively confirm WhatsApp re-rendered it as a group
+      // status within the timeout. That is common (slow sync, fan-out delay) and
+      // is NOT an error by itself, so we warn and return the message instead of
+      // throwing. Callers that need a hard guarantee can pass strictEcho: true.
+      const warning =
+        'Relay SWGC diterima server, tapi tidak ada echo groupStatusMessageV2 dari WhatsApp dalam batas waktu. ' +
+        'Biasanya status grup tetap terkirim (echo bisa telat karena sync/fan-out). ' +
+        'Set strictEcho:true kalau mau anggap ini sebagai error.'
+      if (options.strictEcho === true) {
+        throw new Error(warning)
+      }
+      try { sock.logger?.warn?.({ jid, messageId: msg.key.id }, warning) } catch {}
     }
   }
 
@@ -687,7 +724,8 @@ async function sendPayloadToGroupStatus(sock, targetJid, payload, config = {}) {
   if (!content) throw new Error('Payload SWGC tidak valid')
   return await groupStatus(sock, targetJid, content, {
     verifyEcho: config.verifyEcho !== false,
-    verifyTimeoutMs: config.verifyTimeoutMs || 10000
+    verifyTimeoutMs: config.verifyTimeoutMs || 10000,
+    strictEcho: config.strictEcho === true
   })
 }
 
@@ -800,6 +838,20 @@ function patchSocketSwgc(sock) {
       writable: true
     })
   }
+
+  // Wire the echo notifier into the message pipeline. Without this listener the
+  // waiter created by waitForSwgcEcho() can never resolve, so every SWGC relay
+  // would falsely time out even when WhatsApp accepted it.
+  if (!sock.__swgcEchoHooked && sock.ev && typeof sock.ev.on === 'function') {
+    sock.__swgcEchoHooked = true
+    sock.ev.on('messages.upsert', ({ messages } = {}) => {
+      if (!Array.isArray(messages)) return
+      for (const msg of messages) {
+        try { notifySwgcEcho(sock, msg) } catch {}
+      }
+    })
+  }
+
   return sock
 }
 
@@ -910,7 +962,7 @@ class BaseBuilder {
   }
 
   static async resize(buffer, x, y, fit = 'cover') {
-    return await sharp(buffer)
+    return await loadSharp()(buffer)
       .resize(x, y, {
         fit,
         position: 'center',
@@ -3142,7 +3194,7 @@ async function normalizeStickerEntry(item, index = 0) {
 }
 
 async function buildStickerPackThumbnail(stickerBuffer) {
-  const png = await sharp(stickerBuffer, { animated: true, pages: 1 })
+  const png = await loadSharp()(stickerBuffer, { animated: true, pages: 1 })
     .resize(96, 96, { fit: 'cover' })
     .png()
     .toBuffer()

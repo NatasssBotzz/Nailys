@@ -253,4 +253,3 @@ export interface BaileysEventEmitter {
     removeAllListeners<T extends keyof BaileysEventMap>(event: T): void;
     emit<T extends keyof BaileysEventMap>(event: T, arg: BaileysEventMap[T]): boolean;
 }
-//# sourceMappingURL=Events.d.ts.map

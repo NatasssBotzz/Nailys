@@ -41,4 +41,3 @@ export type IdentityChangeContext = {
     onBeforeSessionRefresh?: (jid: string) => void;
 };
 export declare function handleIdentityChange(node: BinaryNode, ctx: IdentityChangeContext): Promise<IdentityChangeResult>;
-//# sourceMappingURL=identity-change-handler.d.ts.map

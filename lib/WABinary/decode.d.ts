@@ -4,4 +4,3 @@ export declare const decodeDecompressedBinaryNode: (buffer: Buffer, opts: Pick<B
     index: number;
 }) => BinaryNode;
 export declare const decodeBinaryNode: (buff: Buffer) => Promise<BinaryNode>;
-//# sourceMappingURL=decode.d.ts.map
