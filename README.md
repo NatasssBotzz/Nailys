@@ -29,15 +29,15 @@ Original Baileys Discord: https://discord.gg/WeJM5FP9GG
 |---|---|---|
 | Core WhatsApp API | ✅ | ✅ |
 | Pairing Code (with custom code) | ✅ basic | ✅ **custom code + auto-format** |
-| Sticker / Sticker Pack Builder | ❌ need external lib | ✅ `sock.sendSticker()` / `sock.sendStickerPack()` |
-| SWGC (WhatsApp Group Status) | ❌ | ✅ `sock.swgc()` / `sock.swgcBuilder()` |
-| Interactive Messages (Buttons, Carousel) | ❌ | ✅ `sock.button()` / `sock.carouselBuilder()` |
-| Newsletter / Channel Posting (UPCH) | ❌ | ✅ `sock.upch()` |
-| AI-Rich Responses (Markdown, Code, Tables) | ❌ | ✅ `sock.airich()` |
-| Payments / eWallet / Orders | ❌ | ✅ `sock.payment()` / `sock.ewallet()` / `sock.order()` |
-| Link Preview | ❌ | ✅ `sock.linkpreview()` |
-| LID-to-PN Mapping | ❌ | ✅ `sock.lidToPn()` / `sock.pnToLid()` |
-| Old-Style Button (Location Header) | ❌ | ✅ `sock.locbtn()` |
+| Sticker / Sticker Pack Builder | ❌ need external lib | ✅ `Nailys.sendSticker()` / `Nailys.sendStickerPack()` |
+| SWGC (WhatsApp Group Status) | ❌ | ✅ `Nailys.swgc()` / `Nailys.swgcBuilder()` |
+| Interactive Messages (Buttons, Carousel) | ❌ | ✅ `Nailys.button()` / `Nailys.carouselBuilder()` |
+| Newsletter / Channel Posting (UPCH) | ❌ | ✅ `Nailys.upch()` |
+| AI-Rich Responses (Markdown, Code, Tables) | ❌ | ✅ `Nailys.airich()` |
+| Payments / eWallet / Orders | ❌ | ✅ `Nailys.payment()` / `Nailys.ewallet()` / `Nailys.order()` |
+| Link Preview | ❌ | ✅ `Nailys.linkpreview()` |
+| LID-to-PN Mapping | ❌ | ✅ `Nailys.lidToPn()` / `Nailys.pnToLid()` |
+| Old-Style Button (Location Header) | ❌ | ✅ `Nailys.locbtn()` |
 
 All of the above are available on the socket **without any manual patching**. Just `import { makeWASocket } from 'Nailys'` and everything is there.
 
@@ -101,12 +101,12 @@ import { Boom } from '@hapi/boom'
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_Nailys')
-    const sock = makeWASocket({
+    const Nailys = makeWASocket({
         auth: state,
         printQRInTerminal: true
     })
 
-    sock.ev.on('connection.update', (update) => {
+    Nailys.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update
         if (connection === 'close') {
             const shouldReconnect =
@@ -117,14 +117,14 @@ async function connectToWhatsApp() {
         }
     })
 
-    sock.ev.on('messages.upsert', async ({ messages }) => {
+    Nailys.ev.on('messages.upsert', async ({ messages }) => {
         for (const m of messages) {
             console.log(JSON.stringify(m, undefined, 2))
-            await sock.sendMessage(m.key.remoteJid!, { text: 'Hello World' })
+            await Nailys.sendMessage(m.key.remoteJid!, { text: 'Hello World' })
         }
     })
 
-    sock.ev.on('creds.update', saveCreds)
+    Nailys.ev.on('creds.update', saveCreds)
 }
 
 connectToWhatsApp()
@@ -188,7 +188,7 @@ connectToWhatsApp()
 ```ts
 import makeWASocket, { Browsers } from 'Nailys'
 
-const sock = makeWASocket({
+const Nailys = makeWASocket({
     browser: Browsers.ubuntu('My App'),
     printQRInTerminal: true
 })
@@ -199,12 +199,12 @@ Scan the QR code with WhatsApp on your phone.
 ## Pairing Code
 
 ```ts
-const sock = makeWASocket({
+const Nailys = makeWASocket({
     printQRInTerminal: false // must be false
 })
 
-if (!sock.authState.creds.registered) {
-    const code = await sock.requestPairingCode('6281234567890')
+if (!Nailys.authState.creds.registered) {
+    const code = await Nailys.requestPairingCode('6281234567890')
     console.log('Pairing code:', code)
 }
 ```
@@ -216,17 +216,17 @@ if (!sock.authState.creds.registered) {
 Nailys adds support for **custom 8-character pairing codes**:
 
 ```ts
-if (!sock.authState.creds.registered) {
+if (!Nailys.authState.creds.registered) {
     // Request pairing with custom 8-char code
-    const code = await sock.requestPairingCode('6281234567890', 'NATASSBZ')
+    const code = await Nailys.requestPairingCode('6281234567890', 'NATASSBZ')
     console.log('Code:', code) // e.g., "NATA-SSBZ"
 }
 ```
 
-Or use the all-in-one `sock.pairing()` method:
+Or use the all-in-one `Nailys.pairing()` method:
 
 ```ts
-const code = await sock.pairing({
+const code = await Nailys.pairing({
     phoneNumber: '6281234567890',
     customCode: 'NATASSBZ'
 })
@@ -239,7 +239,7 @@ const code = await sock.pairing({
 ## Receive Full History
 
 ```ts
-const sock = makeWASocket({
+const Nailys = makeWASocket({
     browser: Browsers.macOS('Desktop'),
     syncFullHistory: true
 })
@@ -253,10 +253,10 @@ const sock = makeWASocket({
 import makeWASocket, { useMultiFileAuthState } from 'Nailys'
 
 const { state, saveCreds } = await useMultiFileAuthState('auth_info_Nailys')
-const sock = makeWASocket({ auth: state })
+const Nailys = makeWASocket({ auth: state })
 
 // save credentials whenever they update
-sock.ev.on('creds.update', saveCreds)
+Nailys.ev.on('creds.update', saveCreds)
 ```
 
 > When a message is sent/received, auth keys update. Always save them via `creds.update` or messages will fail to deliver.
@@ -268,31 +268,31 @@ sock.ev.on('creds.update', saveCreds)
 Nailys uses EventEmitter syntax. All events from Baileys are available:
 
 ```ts
-sock.ev.on('messages.upsert', ({ messages }) => {
+Nailys.ev.on('messages.upsert', ({ messages }) => {
     console.log('new messages', messages)
 })
 
-sock.ev.on('messages.update', (updates) => {
+Nailys.ev.on('messages.update', (updates) => {
     console.log('message updates', updates)
 })
 
-sock.ev.on('contacts.upsert', (contacts) => {
+Nailys.ev.on('contacts.upsert', (contacts) => {
     console.log('contacts', contacts)
 })
 
-sock.ev.on('groups.upsert', (groups) => {
+Nailys.ev.on('groups.upsert', (groups) => {
     console.log('groups', groups)
 })
 
-sock.ev.on('group-participants.update', (event) => {
+Nailys.ev.on('group-participants.update', (event) => {
     console.log('participant changes', event)
 })
 
-sock.ev.on('presence.update', (presence) => {
+Nailys.ev.on('presence.update', (presence) => {
     console.log('presence', presence)
 })
 
-sock.ev.on('creds.update', saveCreds)
+Nailys.ev.on('creds.update', saveCreds)
 ```
 
 ---
@@ -313,13 +313,13 @@ sock.ev.on('creds.update', saveCreds)
 All message types are sent via a single function:
 
 ```ts
-await sock.sendMessage(jid, content, options)
+await Nailys.sendMessage(jid, content, options)
 ```
 
 ## Text Message
 
 ```ts
-await sock.sendMessage(jid, { text: 'Hello World' })
+await Nailys.sendMessage(jid, { text: 'Hello World' })
 ```
 
 ## Quote Message
@@ -327,13 +327,13 @@ await sock.sendMessage(jid, { text: 'Hello World' })
 Works with all message types:
 
 ```ts
-await sock.sendMessage(jid, { text: 'Hello' }, { quoted: message })
+await Nailys.sendMessage(jid, { text: 'Hello' }, { quoted: message })
 ```
 
 ## Mention User
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     text: '@6281234567890 hello',
     mentions: ['6281234567890@s.whatsapp.net']
 })
@@ -342,13 +342,13 @@ await sock.sendMessage(jid, {
 ## Forward Messages
 
 ```ts
-await sock.sendMessage(jid, { forward: message })
+await Nailys.sendMessage(jid, { forward: message })
 ```
 
 ## Location Message
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     location: {
         degreesLatitude: 24.121231,
         degreesLongitude: 55.1121221
@@ -365,7 +365,7 @@ const vcard = 'BEGIN:VCARD\n'
     + 'TEL;type=CELL;type=VOICE;waid=6281234567890:+62 812 3456 7890\n'
     + 'END:VCARD'
 
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     contacts: {
         displayName: 'John',
         contacts: [{ vcard }]
@@ -376,7 +376,7 @@ await sock.sendMessage(jid, {
 ## Reaction Message
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     react: {
         text: '❤️',      // use '' to remove reaction
         key: message.key
@@ -387,7 +387,7 @@ await sock.sendMessage(jid, {
 ## Poll Message
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     poll: {
         name: 'My Poll',
         values: ['Option 1', 'Option 2', 'Option 3'],
@@ -404,7 +404,7 @@ Sending media is efficient — Nailys never loads entire files into memory, it e
 ### Image
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     image: { url: './image.png' },
     caption: 'My image'
 })
@@ -413,7 +413,7 @@ await sock.sendMessage(jid, {
 ### Video
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     video: { url: './video.mp4' },
     caption: 'My video',
     ptv: false // set true for video note
@@ -423,7 +423,7 @@ await sock.sendMessage(jid, {
 ### Audio
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     audio: { url: './audio.mp3' },
     mimetype: 'audio/mp4'
 })
@@ -432,7 +432,7 @@ await sock.sendMessage(jid, {
 ### GIF
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     video: fs.readFileSync('media.gif.mp4'),
     caption: 'My GIF',
     gifPlayback: true
@@ -442,7 +442,7 @@ await sock.sendMessage(jid, {
 ### View Once Message
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     image: { url: './secret.png' },
     viewOnce: true,   // works with video & audio too
     caption: 'View once'
@@ -456,14 +456,14 @@ await sock.sendMessage(jid, {
 ## Delete Messages
 
 ```ts
-const msg = await sock.sendMessage(jid, { text: 'hello' })
-await sock.sendMessage(jid, { delete: msg.key })
+const msg = await Nailys.sendMessage(jid, { text: 'hello' })
+await Nailys.sendMessage(jid, { delete: msg.key })
 ```
 
 ## Edit Messages
 
 ```ts
-await sock.sendMessage(jid, {
+await Nailys.sendMessage(jid, {
     text: 'updated text',
     edit: msg.key
 })
@@ -476,7 +476,7 @@ await sock.sendMessage(jid, {
 ## Create a Group
 
 ```ts
-const group = await sock.groupCreate('My Group', [
+const group = await Nailys.groupCreate('My Group', [
     '6281234567890@s.whatsapp.net',
     '6289876543210@s.whatsapp.net'
 ])
@@ -486,7 +486,7 @@ console.log('Group ID:', group.gid)
 ## Add / Remove / Promote / Demote
 
 ```ts
-await sock.groupParticipantsUpdate(
+await Nailys.groupParticipantsUpdate(
     jid,
     ['628xxx@s.whatsapp.net'],
     'add' // or 'remove' | 'promote' | 'demote'
@@ -496,67 +496,67 @@ await sock.groupParticipantsUpdate(
 ## Change Subject (Name)
 
 ```ts
-await sock.groupUpdateSubject(jid, 'New Name')
+await Nailys.groupUpdateSubject(jid, 'New Name')
 ```
 
 ## Change Description
 
 ```ts
-await sock.groupUpdateDescription(jid, 'New Description')
+await Nailys.groupUpdateDescription(jid, 'New Description')
 ```
 
 ## Change Settings
 
 ```ts
 // only admins can send messages
-await sock.groupSettingUpdate(jid, 'announcement')
+await Nailys.groupSettingUpdate(jid, 'announcement')
 
 // everyone can send messages
-await sock.groupSettingUpdate(jid, 'not_announcement')
+await Nailys.groupSettingUpdate(jid, 'not_announcement')
 
 // everyone can edit group settings
-await sock.groupSettingUpdate(jid, 'unlocked')
+await Nailys.groupSettingUpdate(jid, 'unlocked')
 
 // only admins can edit group settings
-await sock.groupSettingUpdate(jid, 'locked')
+await Nailys.groupSettingUpdate(jid, 'locked')
 ```
 
 ## Leave a Group
 
 ```ts
-await sock.groupLeave(jid)
+await Nailys.groupLeave(jid)
 ```
 
 ## Get Invite Code
 
 ```ts
-const code = await sock.groupInviteCode(jid)
+const code = await Nailys.groupInviteCode(jid)
 console.log('Invite link:', 'https://chat.whatsapp.com/' + code)
 ```
 
 ## Revoke Invite Code
 
 ```ts
-const code = await sock.groupRevokeInvite(jid)
+const code = await Nailys.groupRevokeInvite(jid)
 ```
 
 ## Join via Invite Code
 
 ```ts
-await sock.groupAcceptInvite('inviteCodeHere')
+await Nailys.groupAcceptInvite('inviteCodeHere')
 ```
 
 ## Query Metadata
 
 ```ts
-const metadata = await sock.groupMetadata(jid)
+const metadata = await Nailys.groupMetadata(jid)
 console.log(metadata.subject, metadata.desc, metadata.participants)
 ```
 
 ## Get All Participating Groups
 
 ```ts
-const groups = await sock.groupFetchAllParticipating()
+const groups = await Nailys.groupFetchAllParticipating()
 ```
 
 ---
@@ -566,15 +566,15 @@ const groups = await sock.groupFetchAllParticipating()
 ## Read Messages
 
 ```ts
-await sock.readMessages([message.key])
+await Nailys.readMessages([message.key])
 ```
 
 ## Update Presence
 
 ```ts
-await sock.sendPresenceUpdate('available', jid)   // online
-await sock.sendPresenceUpdate('composing', jid)    // typing
-await sock.sendPresenceUpdate('unavailable', jid)  // offline
+await Nailys.sendPresenceUpdate('available', jid)   // online
+await Nailys.sendPresenceUpdate('composing', jid)    // typing
+await Nailys.sendPresenceUpdate('unavailable', jid)  // offline
 ```
 
 ---
@@ -583,22 +583,22 @@ await sock.sendPresenceUpdate('unavailable', jid)  // offline
 
 ```ts
 // Change status
-await sock.updateProfileStatus('Hello World!')
+await Nailys.updateProfileStatus('Hello World!')
 
 // Change name
-await sock.updateProfileName('My Name')
+await Nailys.updateProfileName('My Name')
 
 // Change profile picture
-await sock.updateProfilePicture(jid, { url: './photo.jpg' })
+await Nailys.updateProfilePicture(jid, { url: './photo.jpg' })
 
 // Remove profile picture
-await sock.removeProfilePicture(jid)
+await Nailys.removeProfilePicture(jid)
 
 // Get profile picture URL
-const ppUrl = await sock.profilePictureUrl(jid)
+const ppUrl = await Nailys.profilePictureUrl(jid)
 
 // Get business profile
-const biz = await sock.getBusinessProfile(jid)
+const biz = await Nailys.getBusinessProfile(jid)
 ```
 
 ---
@@ -607,53 +607,37 @@ const biz = await sock.getBusinessProfile(jid)
 
 ```ts
 // Block / Unblock
-await sock.updateBlockStatus(jid, 'block')
-await sock.updateBlockStatus(jid, 'unblock')
+await Nailys.updateBlockStatus(jid, 'block')
+await Nailys.updateBlockStatus(jid, 'unblock')
 
 // Update privacy settings
-await sock.updateLastSeenPrivacy('all')           // all | contacts | contact_blacklist | none
-await sock.updateOnlinePrivacy('all')              // all | match_last_seen
-await sock.updateProfilePicturePrivacy('contacts')
-await sock.updateStatusPrivacy('contacts')
-await sock.updateReadReceiptsPrivacy('all')        // all | none
-await sock.updateGroupsAddPrivacy('contacts')
+await Nailys.updateLastSeenPrivacy('all')           // all | contacts | contact_blacklist | none
+await Nailys.updateOnlinePrivacy('all')              // all | match_last_seen
+await Nailys.updateProfilePicturePrivacy('contacts')
+await Nailys.updateStatusPrivacy('contacts')
+await Nailys.updateReadReceiptsPrivacy('all')        // all | none
+await Nailys.updateGroupsAddPrivacy('contacts')
 ```
 
 ---
 
 # Nailys Native Features
-
-All features below are available directly on the socket — **no imports, no patches, no disk hacks**.
-
-### Two API Styles
-
-Every Nailys feature supports **two ways** to use it:
-
-| Style | Description | Example |
-|-------|-------------|---------|
-| **Chain (Builder)** | Method chaining — `.setTitle().setBody().send()` | `sock.button().setTitle('Hi').send(from)` |
-| **Non-chain (Object)** | Pass all options as a plain object — like Baileys original style | `sock.sendButton(from, { title: 'Hi' })` |
-
-> **Tip:** Use **chain** for complex compositions (many buttons, lists, offers). Use **non-chain** for simplicity (quick messages, dynamic options).
-
----
-
 ## Nailys Pairing
 
 Custom pairing code support with auto phone-number formatting.
 
 ```ts
 // All-in-one pairing
-const code = await sock.pairing({
+const code = await Nailys.pairing({
     phoneNumber: '6281234567890',
     customCode: 'NATASSBZ'  // optional, default: NATASSBZ
 })
 
 // Standard + custom
-await sock.requestPairingCode('6281234567890', 'NATASSBZ')
+await Nailys.requestPairingCode('6281234567890', 'NATASSBZ')
 
 // Custom code only (8 chars A-Z, 0-9)
-await sock.requestCustomPairingCode('6281234567890', 'NATASSBZ')
+await Nailys.requestCustomPairingCode('6281234567890', 'NATASSBZ')
 ```
 
 **Helpers (also exported from Nailys):**
@@ -668,9 +652,9 @@ import {
 
 | Method | Description |
 |---|---|
-| `sock.pairing(opts)` | All-in-one: prompts for number if empty, returns formatted code |
-| `sock.requestPairingCode(phone, code?)` | Standard pairing. With optional custom code |
-| `sock.requestCustomPairingCode(phone, code)` | Custom 8-character code pairing |
+| `Nailys.pairing(opts)` | All-in-one: prompts for number if empty, returns formatted code |
+| `Nailys.requestPairingCode(phone, code?)` | Standard pairing. With optional custom code |
+| `Nailys.requestCustomPairingCode(phone, code)` | Custom 8-character code pairing |
 
 ---
 
@@ -678,10 +662,10 @@ import {
 
 Native sticker & sticker pack builder — image/video → WebP conversion, EXIF injection, AI stickers, private/premium stickers.
 
-### `sock.sendSticker(jid, options)`
+### `Nailys.sendSticker(jid, options)`
 
 ```ts
-await sock.sendSticker(jid, {
+await Nailys.sendSticker(jid, {
     media,           // URL | path | Buffer | Message
     packname,        // sticker pack name
     author,          // sticker author
@@ -701,7 +685,7 @@ Supported media sources: URL, local file path, Buffer, Message object, quoted me
 
 ```ts
 // From URL
-await sock.sendSticker(from, {
+await Nailys.sendSticker(from, {
     media: 'https://example.com/image.jpg',
     packname: 'My Pack',
     author: 'Bot',
@@ -709,14 +693,14 @@ await sock.sendSticker(from, {
 })
 
 // From reply media
-await sock.sendSticker(from, {
+await Nailys.sendSticker(from, {
     media: m.quoted,
     packname: 'Pack',
     author: 'Bot'
 })
 
 // Premium sticker
-await sock.sendSticker(from, {
+await Nailys.sendSticker(from, {
     media: buffer,
     packname: 'Premium',
     author: 'VIP',
@@ -724,12 +708,12 @@ await sock.sendSticker(from, {
 })
 ```
 
-### `sock.sendStickerPack(jid, options)`
+### `Nailys.sendStickerPack(jid, options)`
 
 Send a **sticker pack** (up to 30 stickers per message, auto-batched):
 
 ```ts
-await sock.sendStickerPack(from, {
+await Nailys.sendStickerPack(from, {
     name: 'My Pack',
     publisher: 'Bot',
     packname: 'Stickers',
@@ -766,24 +750,24 @@ await sock.sendStickerPack(from, {
 
 ```ts
 // Text status
-await sock.swgc(groupJid, 'Hello everyone!')
+await Nailys.swgc(groupJid, 'Hello everyone!')
 
 // Image status
-await sock.swgc(groupJid, {
+await Nailys.swgc(groupJid, {
     type: 'image',
     buffer: imageBuffer,
     caption: 'Check this out'
 })
 
 // Video status
-await sock.swgc(groupJid, {
+await Nailys.swgc(groupJid, {
     type: 'video',
     buffer: videoBuffer,
     caption: 'Watch this'
 })
 
 // Voice note
-await sock.swgc(groupJid, {
+await Nailys.swgc(groupJid, {
     type: 'audio',
     buffer: audioBuffer,
     mimetype: 'audio/ogg; codecs=opus',
@@ -791,10 +775,10 @@ await sock.swgc(groupJid, {
 })
 ```
 
-### Builder API — `sock.swgcBuilder(jid)`
+### Builder API — `Nailys.swgcBuilder(jid)`
 
 ```ts
-await sock.swgcBuilder(groupJid)
+await Nailys.swgcBuilder(groupJid)
     .text('Hello World')
     .color('putih')          // text color
     .bgcolor('merahtua')     // background color
@@ -803,19 +787,19 @@ await sock.swgcBuilder(groupJid)
     .send()
 
 // Image
-await sock.swgcBuilder(groupJid)
+await Nailys.swgcBuilder(groupJid)
     .image(buffer)
     .caption('Photo caption')
     .send()
 
 // Video
-await sock.swgcBuilder(groupJid)
+await Nailys.swgcBuilder(groupJid)
     .video(buffer)
     .caption('Video caption')
     .send()
 
 // Voice Note
-await sock.swgcBuilder(groupJid)
+await Nailys.swgcBuilder(groupJid)
     .video(buffer, 'audio/ogg; codecs=opus', { ptt: true })
     .send()
 ```
@@ -834,12 +818,12 @@ await sock.swgcBuilder(groupJid)
 
 ```ts
 // Auto-detect from replied message
-const payload = await sock.createStatusPayloadFromInput(m)
-await sock.swgc(groupJid, payload)
+const payload = await Nailys.createStatusPayloadFromInput(m)
+await Nailys.swgc(groupJid, payload)
 
 // With custom text
-const payload = await sock.createStatusPayloadFromInput(m, 'My caption')
-await sock.swgc(groupJid, payload)
+const payload = await Nailys.createStatusPayloadFromInput(m, 'My caption')
+await Nailys.swgc(groupJid, payload)
 ```
 
 ### Fonts
@@ -879,9 +863,9 @@ await sock.swgc(groupJid, payload)
 Also supports raw HEX values (without `#`):
 
 ```ts
-sock.resolveColor('#ff0000')  // → 0xFFFF0000
-sock.resolveFont('fancy')     // → 5
-sock.COLORS                   // color map object
+Nailys.resolveColor('#ff0000')  // → 0xFFFF0000
+Nailys.resolveFont('fancy')     // → 5
+Nailys.COLORS                   // color map object
 ```
 
 ---
@@ -890,43 +874,9 @@ sock.COLORS                   // color map object
 
 Native interactive message builders — buttons, bottom sheets, limited-time offers, carousels, and booking forms.
 
-Two styles available:
-
-**🔗 Chain (Builder):** `sock.button().setTitle(...).setBody(...).send(jid)`
-**📦 Non-chain (Object):** `sock.sendButton(jid, { title, body, buttons: [...] })`
-
-### `sock.button()` — InteractiveBuilder (Chain)
 
 ```ts
-await sock.button()
-    .setTitle('Menu Utama')
-    .setBody('Silakan pilih opsi di bawah:')
-    .setFooter('© My Bot')
-    .setContextInfo({
-        stanzaId: m.key.id,
-        participant: m.key.participant || m.key.remoteJid,
-        quotedMessage: m.message
-    })
-    .qreplybtn('display: Profile', 'value: .profile')
-    .copybtn('display: Copy Code', 'code: ABC-123', 'icon: PROMOTION')
-    .urlbtn('display: Website', 'url: https://example.com')
-    .callbtn('display: Call CS', 'phone: 628123456789')
-    .listbtn('display: Menu', [
-        {
-            title: 'Category',
-            rows: [
-                { title: 'Option A', description: 'Description', id: '.opta' },
-                { title: 'Option B', description: 'Description', id: '.optb' }
-            ]
-        }
-    ])
-    .send(from)
-```
-
-### `sock.sendButton(jid, opts)` — Non-chain
-
-```ts
-await sock.sendButton(from, {
+await Nailys.sendButton(from, {
     title: 'Menu Utama',
     body: 'Silakan pilih opsi di bawah:',
     footer: '© My Bot',
@@ -941,98 +891,12 @@ await sock.sendButton(from, {
         title: 'Menu',
         sections: [{ title: 'Category', rows: [{ title: 'Option A', id: '.opta' }] }]
     }
-})
-```
-
-### Bottom Sheet (Chain)
-
-```ts
-await sock.button()
-    .setTitle('Services')
-    .setBody('Click below to see options.')
-    .bottomsheet('Main Menu', 'Open Menu', 2, [1, 5])
-    .qreplybtn('display: Start', 'value: .start')
-    .qreplybtn('display: Help', 'value: .help')
-    .copybtn('display: Token', 'code: XYZ')
-    .urlbtn('display: Web', 'url: https://example.com')
-    .callbtn('display: Call', 'phone: 628123456789')
-    .send(from)
-```
-
-**`.bottomsheet(title, buttonText, inThreadButtons, dividerIndices)`**
-
-| Param | Description |
-|---|---|
-| `title` | Header text in bottom sheet |
-| `buttonText` | Trigger button label |
-| `inThreadButtons` | Buttons shown inline (0-2) |
-| `dividerIndices` | Divider positions (1-based) |
-
-### Limited Time Offer
-
-```ts
-await sock.button()
-    .setBody('Special promo!')
-    .offer('display: Flash Sale', 'copy: PROMO50', 'url: https://shop.com', 'exp: day')
-    .send(from)
-```
-
-Expiration values: `day`, `week`, `month`, `year`, `exp` (expired), or empty (no expiration).
-
-### Booking
-
-```ts
-await sock.button()
-    .setTitle('Book Now')
-    .setBody('Schedule your appointment.')
-    .bookingbtn('display: Book Now', {
-        start_datetime: '2026-06-22T08:00:00.000Z',
-        end_datetime: '2026-06-22T09:00:00.000Z',
-        location: 'Jakarta, Indonesia',
-        booking_url: 'https://example.com/book',
-        phone_number: '628123456789',
-        description: 'Consultation session',
-        email: 'user@example.com',
-        display_content: {
-            display_language: 'id',
-            display_meeting_type: 'Consultation',
-            display_bottom_sheet_header: 'Select Time'
-        }
-    })
-    .send(from)
-```
-
-### Carousel — Chain
-
-```ts
-const defaultMedia = { image: { url: 'https://placehold.co/600x400/png' } }
-
-const card1 = await sock.cardBuilder()
-    .setTitle('Card 1')
-    .setBody('Card 1 body')
-    .setMedia(defaultMedia)
-    .qreplybtn('display: Action', 'value: .action1')
-    .build()
-
-const card2 = await sock.cardBuilder()
-    .setTitle('Card 2')
-    .setBody('Card 2 body')
-    .setMedia(defaultMedia)
-    .urlbtn('display: Visit', 'url: https://example.com')
-    .build()
-
-await sock.carouselBuilder()
-    .setBody('Main carousel message')
-    .setFooter('Footer text')
-    .setContextInfo({ stanzaId: m.key.id, participant: m.key.participant, quotedMessage: m.message })
-    .addcard(card1, card2)
-    .send(from)
 ```
 
 ### Carousel — Non-chain
 
 ```ts
-await sock.sendCarousel(from, {
+await Nailys.sendCarousel(from, {
     body: 'Main carousel message',
     footer: 'Footer text',
     contextInfo: { stanzaId: m.key.id, participant: m.key.participant, quotedMessage: m.message },
@@ -1055,42 +919,21 @@ await sock.sendCarousel(from, {
 
 | Method | Builder | Purpose |
 |---|---|---|
-| `sock.button()` | InteractiveBuilder | Interactive button messages |
-| `sock.carouselBuilder()` | CarouselBuilder | Multi-card carousel |
-| `sock.cardBuilder()` | CarouselCardBuilder | Single card for carousel |
-| `sock.buildButtons(buttons)` | — | Utility: build button array |
+| `Nailys.button()` | InteractiveBuilder | Interactive button messages |
+| `Nailys.carouselBuilder()` | CarouselBuilder | Multi-card carousel |
+| `Nailys.cardBuilder()` | CarouselCardBuilder | Single card for carousel |
+| `Nailys.buildButtons(buttons)` | — | Utility: build button array |
 
 ---
 
 ## Nailys ButtonV2
-
-**Old-style button messages with location header** — `sock.locbtn()`.
-
-### Chain — `sock.locbtn()`
-
-```ts
-await sock.locbtn()
-    .setBody('Choose an option:')
-    .setFooter('Footer text')
-    .locreply('👤 Profile', '.profile')
-    .locreply('⚙️ Settings', '.settings')
-    .send(from, { quoted: m })
-
-// With location header + thumbnail
-await sock.locbtn()
-    .setLocationThumbnailFromQuoted(quotedMessage)
-    .setTitle('📍 My Location')
-    .setSubtitle('Jl. Example No. 123')
-    .setBody('Here is my location')
-    .locreply('📍 Ping', '.ping')
-    .locreply('📋 Menu', '.menu')
     .send(from, { quoted: m })
 ```
 
-### Non-chain — `sock.sendLocBtn(jid, opts)`
+### Non-chain — `Nailys.sendLocBtn(jid, opts)`
 
 ```ts
-await sock.sendLocBtn(from, {
+await Nailys.sendLocBtn(from, {
     body: 'Choose an option:',
     footer: 'Footer text',
     buttons: [
@@ -1100,7 +943,7 @@ await sock.sendLocBtn(from, {
 }, { quoted: m })
 
 // With location header
-await sock.sendLocBtn(from, {
+await Nailys.sendLocBtn(from, {
     title: '📍 My Location',
     subtitle: 'Jl. Example No. 123',
     body: 'Here is my location',
@@ -1125,51 +968,29 @@ await sock.sendLocBtn(from, {
 ---
 
 ## Nailys UPCH
-
-**Newsletter / Channel posting** — Send images, videos, audio (with 4-step ffmpeg conversion to OGG Opus), and PTV to WhatsApp Channels.
-
-### Chain — `sock.upch()`
-
-```ts
-// Send image to channel
-await sock.upch()
-    .image(buffer)
-    .caption('Amazing photo!')
-    .sendch('120363424475734781@newsletter')
-
-// Send video to channel
-await sock.upch()
-    .video(buffer)
-    .caption('Watch this!')
-    .sendch('120363424475734781@newsletter')
-
-// Send audio to channel (auto converts to OGG Opus)
-await sock.upch()
-    .audio(buffer)
-    .caption('Voice message')
     .sendch('120363424475734781@newsletter')
 ```
 
-### Non-chain — `sock.sendUpch(jid, payload)`
+### Non-chain — `Nailys.sendUpch(jid, payload)`
 
 ```ts
 // Send image
-await sock.sendUpch('120xxx@newsletter', {
+await Nailys.sendUpch('120xxx@newsletter', {
     type: 'image', buffer: imageBuffer, caption: 'Amazing photo!'
 })
 
 // Send video
-await sock.sendUpch('120xxx@newsletter', {
+await Nailys.sendUpch('120xxx@newsletter', {
     type: 'video', buffer: videoBuffer, caption: 'Watch this!'
 })
 
 // Send audio (auto OGG Opus conversion)
-await sock.sendUpch('120xxx@newsletter', {
+await Nailys.sendUpch('120xxx@newsletter', {
     type: 'audio', buffer: audioBuffer, caption: 'Voice message'
 })
 
 // Send PTV to chat
-await sock.sendUpch(chatJid, {
+await Nailys.sendUpch(chatJid, {
     type: 'video', buffer: videoBuffer, ptv: true
 }, { quoted: m })
 ```
@@ -1187,39 +1008,23 @@ Audio is automatically processed through a 4-step ffmpeg pipeline before being s
 
 ```ts
 // Normalize newsletter JID
-const jid = sock.normalizeNewsletterJid('120363424475734781')
+const jid = Nailys.normalizeNewsletterJid('120363424475734781')
 // → '120363424475734781@newsletter'
 
 // From invite link
-const jid = sock.normalizeNewsletterJid('https://whatsapp.com/channel/0029Va...')
+const jid = Nailys.normalizeNewsletterJid('https://whatsapp.com/channel/0029Va...')
 ```
 
 ---
 
 ## Nailys AI-Rich
-
-**AI-style rich responses** — Build complex messages with markdown text, code blocks, tables, images, and suggestions.
-
-### Chain — `sock.airich()`
-
-```ts
-await sock.airich()
-    .addText('Hello! This supports [links](https://example.com) and **markdown**.')
-    .addCode('javascript', `console.log("Hello World");`)
-    .addTable([
-        ['Feature', 'Status'],
-        ['Code Block', '✅ Active'],
-        ['Media Post', '✅ Active']
-    ])
-    .addTip('Make sure your input is valid.')
-    .addSuggest('Show main menu')
     .send(from, { quoted: m })
 ```
 
-### Non-chain — `sock.sendAIRich(jid, opts)`
+### Non-chain — `Nailys.sendAIRich(jid, opts)`
 
 ```ts
-await sock.sendAIRich(from, {
+await Nailys.sendAIRich(from, {
     title: 'Response',
     text: 'Hello! This supports **markdown**.',
     code: { language: 'javascript', code: 'console.log("Hello");' },
@@ -1246,76 +1051,11 @@ await sock.sendAIRich(from, {
 | `.addSuggest(text)` | Quick suggestion button |
 | `.setTitle(title)` | Response title |
 | `.setFooter(footer)` | Response footer |
-| `.setContextInfo(obj)` | Context info (reply metadata) |
-| `.send(jid, opts?)` | Send the rich response |
-
-### Post Example
-
-```ts
-await sock.airich()
-    .addPost([{
-        profile: 'https://example.com/avatar.jpg',
-        username: 'user',
-        title: 'Post Title',
-        subtitle: 'SUBTITLE',
-        caption: 'This is a post description.',
-        verified: true,
-        url: 'https://example.com/post',
-        thumbnail: 'https://example.com/thumb.jpg',
-        source: 'INSTAGRAM',
-        footer: 'footer text'
-    }])
-    .send(from, { quoted: m })
-```
-
-### Product Example
-
-```ts
-await sock.airich()
-    .addProduct({
-        title: 'Product Name',
-        brand: 'Brand',
-        price: 'Rp 100.000',
-        sale_price: 'Rp 75.000',
-        url: 'https://shop.com/product',
-        image: 'https://example.com/product.jpg'
-    })
-    .send(from, { quoted: m })
-```
-
----
-
 ## Nailys Payment
 
 Native payment & order message builders.
 
-### Chain — `sock.payment()` / `sock.ewallet()` / `sock.order()`
-
-```ts
-await sock.payment()
-    .body('Order details')
-    .footer('Thank you')
-    .amount(20000000, 100)   // value/offset = Rp 200.000
-    .reference('REF-123')
-    .type('digital-goods')
-    .status('captured')
-    .orderDescription('Premium package purchase')
-    .tax(8, 100).discount(6400, 100).shipping(4, 100)
-    .item({ retailer_id: 'PROD-1', name: 'Premium Package', value: 900000, offset: 100, quantity: 1 })
-    .nativePaymentMethods([{ name: 'PIX', enabled: false }])
-    .shareStatus(true)
-    .send(from, { quoted: m })
-
-// EWallet
-await sock.ewallet('dana')
-    .key('087873384161').name('DANA')
-    .institution('DANA').fullName('John Doe').accountType('wallet')
-    .amount(50000, 100).reference('DANA-123')
-    .item({ name: 'Donation', value: 50000, offset: 100, quantity: 1 })
-    .send(from, { quoted: m })
-
-// Order
-await sock.order()
+await Nailys.order()
     .orderId('INV-1781789438996').orderTitle('Premium Package')
     .sellerJid('6281330586274:85@s.whatsapp.net').token('INV-TOKEN-1781789438996')
     .totalAmountRaw(50000000).currency('IDR').message('Thank you!')
@@ -1323,10 +1063,10 @@ await sock.order()
     .send(from, { quoted: m })
 ```
 
-### Non-chain — `sock.sendPayment()` / `sock.sendEWallet()` / `sock.sendOrder()`
+### Non-chain — `Nailys.sendPayment()` / `Nailys.sendEWallet()` / `Nailys.sendOrder()`
 
 ```ts
-await sock.sendPayment(from, {
+await Nailys.sendPayment(from, {
     body: 'Order details',
     footer: 'Thank you',
     amount: 20000000, offset: 100,
@@ -1338,7 +1078,7 @@ await sock.sendPayment(from, {
 }, { quoted: m })
 
 // EWallet — non-chain
-await sock.sendEWallet(from, 'dana', {
+await Nailys.sendEWallet(from, 'dana', {
     key: '087873384161', name: 'DANA',
     fullName: 'John Doe', accountType: 'wallet',
     amount: 50000, reference: 'DANA-123',
@@ -1346,7 +1086,7 @@ await sock.sendEWallet(from, 'dana', {
 }, { quoted: m })
 
 // Order — non-chain
-await sock.sendOrder(from, {
+await Nailys.sendOrder(from, {
     orderId: 'INV-123', orderTitle: 'Package',
     sellerJid: '628xxx:85@s.whatsapp.net', token: 'TOKEN',
     totalAmount: 50000000, currency: 'IDR', message: 'Thanks!',
@@ -1364,20 +1104,10 @@ Supported wallets: `dana`, `gopay`, `ovo`, `linkaja`, `seabank`, `qris`, `shopep
 
 > Link preview **cannot** be combined with buttons, interactive, or rich media — this is a WhatsApp protocol limitation.
 
-### Chain — `sock.linkpreview()`
+### Non-chain — `Nailys.sendLinkPreview(jid, opts)`
 
 ```ts
-await sock.linkpreview()
-    .image(buffer).link('https://example.com')
-    .title('Example Title').description('Preview')
-    .type('small').text('Check this link!')
-    .send(from, { quoted: m })
-```
-
-### Non-chain — `sock.sendLinkPreview(jid, opts)`
-
-```ts
-await sock.sendLinkPreview(from, {
+await Nailys.sendLinkPreview(from, {
     image: buffer,
     link: 'https://example.com',
     title: 'Example Title',
@@ -1387,7 +1117,7 @@ await sock.sendLinkPreview(from, {
 }, { quoted: m })
 
 // High quality (big) preview
-await sock.sendLinkPreview(from, {
+await Nailys.sendLinkPreview(from, {
     image: buffer, link: 'https://example.com',
     title: 'Example Title', description: 'Preview',
     type: 'big', text: 'Check this link!'
@@ -1410,31 +1140,31 @@ await sock.sendLinkPreview(from, {
 
 ## Nailys LID-to-PN
 
-**LID (Linked Device ID) ↔ Phone Number mapping** — `sock.lidToPn()` / `sock.pnToLid()`.
+**LID (Linked Device ID) ↔ Phone Number mapping** — `Nailys.lidToPn()` / `Nailys.pnToLid()`.
 
-Automatically learns mappings from contacts, messages, and group participants. Uses in-memory LID store (`sock.signalRepository.lidMapping`) — **no file writes, no database**.
+Automatically learns mappings from contacts, messages, and group participants. Uses in-memory LID store (`Nailys.signalRepository.lidMapping`) — **no file writes, no database**.
 
 ```ts
 // Convert LID to phone number JID
-const pn = await sock.lidToPn('251895939637299@s.whatsapp.net')
+const pn = await Nailys.lidToPn('251895939637299@s.whatsapp.net')
 // → '6287873384161@s.whatsapp.net'
 
 // Convert phone number to LID
-const lid = await sock.pnToLid('6287873384161@s.whatsapp.net')
+const lid = await Nailys.pnToLid('6287873384161@s.whatsapp.net')
 // → '251895939637299@s.whatsapp.net'
 
 // Resolve any JID to PN (with group learning)
-const resolved = await sock.resolveAnyJidToPn('251895939637299@s.whatsapp.net', groupJid)
+const resolved = await Nailys.resolveAnyJidToPn('251895939637299@s.whatsapp.net', groupJid)
 ```
 
 | Method | Description |
 |---|---|
-| `sock.lidToPn(jid)` | Resolve LID → Phone Number JID |
-| `sock.pnToLid(jid)` | Resolve Phone Number JID → LID |
-| `sock.resolveAnyJidToPn(jid, chatJid?)` | Auto-resolve any JID to PN, with group learning |
-| `sock.toPn(jid)` | Alias for `lidToPn` |
-| `sock.toLid(jid)` | Alias for `pnToLid` |
-| `sock.learnLidPn(data)` | Manually teach a mapping |
+| `Nailys.lidToPn(jid)` | Resolve LID → Phone Number JID |
+| `Nailys.pnToLid(jid)` | Resolve Phone Number JID → LID |
+| `Nailys.resolveAnyJidToPn(jid, chatJid?)` | Auto-resolve any JID to PN, with group learning |
+| `Nailys.toPn(jid)` | Alias for `lidToPn` |
+| `Nailys.toLid(jid)` | Alias for `pnToLid` |
+| `Nailys.learnLidPn(data)` | Manually teach a mapping |
 
 ---
 
