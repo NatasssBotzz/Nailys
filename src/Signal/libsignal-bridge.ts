@@ -1,7 +1,7 @@
 /**
  * libsignal-bridge.ts — ESM/CJS/Bun native compatibility wrapper
  *
- * The `libsignal` package is CJS-only and naileys imports from deep paths
+ * The `libsignal` package is CJS-only and Nailys imports from deep paths
  * like `libsignal/src/curve`, `libsignal/src/crypto`, `libsignal/src/protobufs`.
  * These deep imports break in strict ESM environments (Node ESM, Bun, bundlers).
  *

@@ -1,5 +1,5 @@
 {
-  "name": "naileys",
+  "name": "Nailys",
   "type": "module",
   "version": "7.0.0-rc13",
   "description": "A WebSockets library for interacting with WhatsApp Web",
@@ -7,9 +7,9 @@
     "whatsapp",
     "automation"
   ],
-  "homepage": "https://github.com/NatasssBotzz/Naileys",
+  "homepage": "https://github.com/NatasssBotzz/Nailys",
   "repository": {
-    "url": "git@github.com:NatasssBotzz/Naileys.git"
+    "url": "git@github.com:NatasssBotzz/Nailys.git"
   },
   "license": "MIT",
   "author": "Rajeh Taher",
@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "tsc -P tsconfig.build.json && tsc-esm-fix --tsconfig=tsconfig.build.json --ext=.js",
-    "postinstall": "echo '[naileys] Skipping build — menggunakan lib/ dari repo'"
+    "postinstall": "echo '[Nailys] Skipping build — menggunakan lib/ dari repo'"
   },
   "dependencies": {
     "@cacheable/node-cache": "^1.4.0",

@@ -1,4 +1,4 @@
-<h1 align='center'>Naileys</h1>
+<h1 align='center'>Nailys</h1>
 
 <div align='center'>A WebSockets-based TypeScript library for interacting with the WhatsApp Web API — with native builders for stickers, interactive messages, payments, newsletters, AI-rich responses, and more.</div>
 
@@ -9,13 +9,13 @@
 
 </div>
 
-> **Naileys** is a fork of [Baileys](https://github.com/WhiskeySockets/Baileys) with **batteries included** — all common bot features (sticker builders, interactive messages, newsletter/channel posting, SWGC, payments, AI-rich responses, and more) are built directly into the socket. No manual patching, no disk hacks, no extra imports.
+> **Nailys** is a fork of [Baileys](https://github.com/WhiskeySockets/Baileys) with **batteries included** — all common bot features (sticker builders, interactive messages, newsletter/channel posting, SWGC, payments, AI-rich responses, and more) are built directly into the socket. No manual patching, no disk hacks, no extra imports.
 
 ---
 
 # Important Note
 
-This is the official README for Naileys — a Baileys fork maintained by [NatasssBotzz](https://github.com/NatasssBotzz). All features from the original Baileys are preserved and extended with native builders.
+This is the official README for Nailys — a Baileys fork maintained by [NatasssBotzz](https://github.com/NatasssBotzz). All features from the original Baileys are preserved and extended with native builders.
 
 Original Baileys docs: https://baileys.wiki
 
@@ -23,9 +23,9 @@ Original Baileys Discord: https://discord.gg/WeJM5FP9GG
 
 ---
 
-# Why Naileys?
+# Why Nailys?
 
-| Feature | Baileys | Naileys |
+| Feature | Baileys | Nailys |
 |---|---|---|
 | Core WhatsApp API | ✅ | ✅ |
 | Pairing Code (with custom code) | ✅ basic | ✅ **custom code + auto-format** |
@@ -39,7 +39,7 @@ Original Baileys Discord: https://discord.gg/WeJM5FP9GG
 | LID-to-PN Mapping | ❌ | ✅ `sock.lidToPn()` / `sock.pnToLid()` |
 | Old-Style Button (Location Header) | ❌ | ✅ `sock.locbtn()` |
 
-All of the above are available on the socket **without any manual patching**. Just `import { makeWASocket } from 'naileys'` and everything is there.
+All of the above are available on the socket **without any manual patching**. Just `import { makeWASocket } from 'Nailys'` and everything is there.
 
 ---
 
@@ -47,13 +47,13 @@ All of the above are available on the socket **without any manual patching**. Ju
 
 ```bash
 # via npm
-npm install github:NatasssBotzz/Naileys
+npm install github:NatasssBotzz/Nailys
 
 # via yarn
-yarn add github:NatasssBotzz/Naileys
+yarn add github:NatasssBotzz/Nailys
 
 # via bun
-bun add github:NatasssBotzz/Naileys
+bun add github:NatasssBotzz/Nailys
 ```
 
 Or add to your `package.json`:
@@ -61,7 +61,7 @@ Or add to your `package.json`:
 ```json
 {
   "dependencies": {
-    "naileys": "github:NatasssBotzz/Naileys"
+    "Nailys": "github:NatasssBotzz/Nailys"
   }
 }
 ```
@@ -69,9 +69,9 @@ Or add to your `package.json`:
 Then import:
 
 ```ts
-import makeWASocket from 'naileys'
+import makeWASocket from 'Nailys'
 // or
-import { makeWASocket } from 'naileys'
+import { makeWASocket } from 'Nailys'
 ```
 
 > **Node.js >= 20.0.0 required.**
@@ -96,11 +96,11 @@ yarn add sharp fluent-ffmpeg node-webpmux archiver
 # Quick Start
 
 ```ts
-import makeWASocket, { useMultiFileAuthState, DisconnectReason } from 'naileys'
+import makeWASocket, { useMultiFileAuthState, DisconnectReason } from 'Nailys'
 import { Boom } from '@hapi/boom'
 
 async function connectToWhatsApp() {
-    const { state, saveCreds } = await useMultiFileAuthState('auth_info_naileys')
+    const { state, saveCreds } = await useMultiFileAuthState('auth_info_Nailys')
     const sock = makeWASocket({
         auth: state,
         printQRInTerminal: true
@@ -166,17 +166,17 @@ connectToWhatsApp()
 - [Presence & Read Receipts](#presence--read-receipts)
 - [Profile Management](#profile-management)
 - [Privacy](#privacy)
-- [Naileys Native Features](#naileys-native-features)
-    - [Pairing (Custom Code)](#naileys-pairing)
-    - [Sticker & Sticker Pack](#naileys-sticker)
-    - [SWGC (Group Status)](#naileys-swgc)
-    - [Interactive Messages (Buttons, Carousel)](#naileys-interactive)
-    - [ButtonV2 / locbtn (Location Header)](#naileys-buttonv2)
-    - [UPCH (Newsletter / Channel)](#naileys-upch)
-    - [AI-Rich Responses](#naileys-airich)
-    - [Payment / eWallet / Order](#naileys-payment)
-    - [Link Preview](#naileys-linkpreview)
-    - [LID-to-PN Mapping](#naileys-lidtopn)
+- [Nailys Native Features](#nailys-native-features)
+    - [Pairing (Custom Code)](#nailys-pairing)
+    - [Sticker & Sticker Pack](#nailys-sticker)
+    - [SWGC (Group Status)](#nailys-swgc)
+    - [Interactive Messages (Buttons, Carousel)](#nailys-interactive)
+    - [ButtonV2 / locbtn (Location Header)](#nailys-buttonv2)
+    - [UPCH (Newsletter / Channel)](#nailys-upch)
+    - [AI-Rich Responses](#nailys-airich)
+    - [Payment / eWallet / Order](#nailys-payment)
+    - [Link Preview](#nailys-linkpreview)
+    - [LID-to-PN Mapping](#nailys-lidtopn)
 - [Disclaimer](#disclaimer)
 
 ---
@@ -186,7 +186,7 @@ connectToWhatsApp()
 ## QR Code
 
 ```ts
-import makeWASocket, { Browsers } from 'naileys'
+import makeWASocket, { Browsers } from 'Nailys'
 
 const sock = makeWASocket({
     browser: Browsers.ubuntu('My App'),
@@ -213,7 +213,7 @@ if (!sock.authState.creds.registered) {
 
 ## Custom Pairing Code
 
-Naileys adds support for **custom 8-character pairing codes**:
+Nailys adds support for **custom 8-character pairing codes**:
 
 ```ts
 if (!sock.authState.creds.registered) {
@@ -250,9 +250,9 @@ const sock = makeWASocket({
 # Saving & Restoring Sessions
 
 ```ts
-import makeWASocket, { useMultiFileAuthState } from 'naileys'
+import makeWASocket, { useMultiFileAuthState } from 'Nailys'
 
-const { state, saveCreds } = await useMultiFileAuthState('auth_info_naileys')
+const { state, saveCreds } = await useMultiFileAuthState('auth_info_Nailys')
 const sock = makeWASocket({ auth: state })
 
 // save credentials whenever they update
@@ -265,7 +265,7 @@ sock.ev.on('creds.update', saveCreds)
 
 # Handling Events
 
-Naileys uses EventEmitter syntax. All events from Baileys are available:
+Nailys uses EventEmitter syntax. All events from Baileys are available:
 
 ```ts
 sock.ev.on('messages.upsert', ({ messages }) => {
@@ -399,7 +399,7 @@ await sock.sendMessage(jid, {
 
 ## Media Messages
 
-Sending media is efficient — Naileys never loads entire files into memory, it encrypts streams directly.
+Sending media is efficient — Nailys never loads entire files into memory, it encrypts streams directly.
 
 ### Image
 
@@ -621,13 +621,13 @@ await sock.updateGroupsAddPrivacy('contacts')
 
 ---
 
-# Naileys Native Features
+# Nailys Native Features
 
 All features below are available directly on the socket — **no imports, no patches, no disk hacks**.
 
 ---
 
-## Naileys Pairing
+## Nailys Pairing
 
 Custom pairing code support with auto phone-number formatting.
 
@@ -645,14 +645,14 @@ await sock.requestPairingCode('6281234567890', 'NATASSBZ')
 await sock.requestCustomPairingCode('6281234567890', 'NATASSBZ')
 ```
 
-**Helpers (also exported from naileys):**
+**Helpers (also exported from Nailys):**
 
 ```ts
 import {
     normalizePhoneNumber,        // '08xx' → '628xx'
     formatPairingCode,           // 'NATASSBZ' → 'NATA-SSBZ'
     DEFAULT_CUSTOM_PAIRING_CODE  // 'NATASSBZ'
-} from 'naileys'
+} from 'Nailys'
 ```
 
 | Method | Description |
@@ -663,7 +663,7 @@ import {
 
 ---
 
-## Naileys Sticker
+## Nailys Sticker
 
 Native sticker & sticker pack builder — image/video → WebP conversion, EXIF injection, AI stickers, private/premium stickers.
 
@@ -747,7 +747,7 @@ await sock.sendStickerPack(from, {
 
 ---
 
-## Naileys SWGC
+## Nailys SWGC
 
 **WhatsApp Status Group Content** — send status-like messages to groups with text formatting, images, videos, voice notes, and audience control.
 
@@ -875,7 +875,7 @@ sock.COLORS                   // color map object
 
 ---
 
-## Naileys Interactive
+## Nailys Interactive
 
 Native interactive message builders — buttons, bottom sheets, limited-time offers, carousels, and booking forms.
 
@@ -1016,7 +1016,7 @@ await sock.carouselBuilder()
 
 ---
 
-## Naileys ButtonV2
+## Nailys ButtonV2
 
 **Old-style button messages with location header** — `sock.locbtn()`.
 
@@ -1078,7 +1078,7 @@ await sock.locbtn()
 
 ---
 
-## Naileys UPCH
+## Nailys UPCH
 
 **Newsletter / Channel posting** — `sock.upch()`. Send images, videos, audio (with 4-step ffmpeg conversion to OGG Opus), and PTV (Picture-in-Picture Video) to WhatsApp Channels.
 
@@ -1135,7 +1135,7 @@ const jid = sock.normalizeNewsletterJid('https://whatsapp.com/channel/0029Va...'
 
 ---
 
-## Naileys AI-Rich
+## Nailys AI-Rich
 
 **AI-style rich responses** — `sock.airich()`. Build complex messages with markdown text, code blocks, tables, images, videos, posts, reels, products, and suggestions — all chained fluently.
 
@@ -1209,7 +1209,7 @@ await sock.airich()
 
 ---
 
-## Naileys Payment
+## Nailys Payment
 
 Native payment & order message builders.
 
@@ -1289,7 +1289,7 @@ await sock.order()
 
 ---
 
-## Naileys LinkPreview
+## Nailys LinkPreview
 
 **Link preview builder** — `sock.linkpreview()`.
 
@@ -1342,7 +1342,7 @@ await sock.linkpreview()
 
 ---
 
-## Naileys LID-to-PN
+## Nailys LID-to-PN
 
 **LID (Linked Device ID) ↔ Phone Number mapping** — `sock.lidToPn()` / `sock.pnToLid()`.
 
@@ -1374,7 +1374,7 @@ const resolved = await sock.resolveAnyJidToPn('251895939637299@s.whatsapp.net', 
 
 # Utility Exports
 
-Naileys also exports all utility functions from Baileys:
+Nailys also exports all utility functions from Baileys:
 
 ```ts
 import {
@@ -1416,7 +1416,7 @@ import {
     videoToWebp,
     
     // And more...
-} from 'naileys'
+} from 'Nailys'
 ```
 
 ---
