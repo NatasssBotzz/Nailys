@@ -9,7 +9,7 @@
 
 </div>
 
-> **Nailys** is a fork of [Baileys](https://github.com/WhiskeySockets/Baileys) with **batteries included** — all common bot features (sticker builders, interactive messages, newsletter/channel posting, SWGC, payments, AI-rich responses, and more) are built directly into the socket. No manual patching, no disk hacks, no extra imports.
+> **Nailys** — all common bot features (sticker builders, interactive messages, newsletter/channel posting, SWGC, payments, AI-rich responses, and more) are built directly into the socket. No manual patching, no extra imports.
 
 ---
 
@@ -20,26 +20,6 @@ This is the official README for Nailys — a Baileys fork maintained by [Natasss
 Original Baileys docs: https://baileys.wiki
 
 Original Baileys Discord: https://discord.gg/WeJM5FP9GG
-
----
-
-# Why Nailys?
-
-| Feature | Baileys | Nailys |
-|---|---|---|
-| Core WhatsApp API | ✅ | ✅ |
-| Pairing Code (with custom code) | ✅ basic | ✅ **custom code + auto-format** |
-| Sticker / Sticker Pack Builder | ❌ need external lib | ✅ `Nailys.sendSticker()` / `Nailys.sendStickerPack()` |
-| SWGC (WhatsApp Group Status) | ❌ | ✅ `Nailys.swgc()` / `Nailys.swgcBuilder()` |
-| Interactive Messages (Buttons, Carousel) | ❌ | ✅ `Nailys.button()` / `Nailys.carouselBuilder()` |
-| Newsletter / Channel Posting (UPCH) | ❌ | ✅ `Nailys.upch()` |
-| AI-Rich Responses (Markdown, Code, Tables) | ❌ | ✅ `Nailys.airich()` |
-| Payments / eWallet / Orders | ❌ | ✅ `Nailys.payment()` / `Nailys.ewallet()` / `Nailys.order()` |
-| Link Preview | ❌ | ✅ `Nailys.linkpreview()` |
-| LID-to-PN Mapping | ❌ | ✅ `Nailys.lidToPn()` / `Nailys.pnToLid()` |
-| Old-Style Button (Location Header) | ❌ | ✅ `Nailys.locbtn()` |
-
-All of the above are available on the socket **without any manual patching**. Just `import { makeWASocket } from 'Nailys'` and everything is there.
 
 ---
 
@@ -166,17 +146,16 @@ connectToWhatsApp()
 - [Presence & Read Receipts](#presence--read-receipts)
 - [Profile Management](#profile-management)
 - [Privacy](#privacy)
-- [Nailys Native Features](#nailys-native-features)
-    - [Pairing (Custom Code)](#nailys-pairing)
-    - [Sticker & Sticker Pack](#nailys-sticker)
-    - [SWGC (Group Status)](#nailys-swgc)
-    - [Interactive Messages (Buttons, Carousel)](#nailys-interactive)
-    - [ButtonV2 / locbtn (Location Header)](#nailys-buttonv2)
-    - [UPCH (Newsletter / Channel)](#nailys-upch)
-    - [AI-Rich Responses](#nailys-airich)
-    - [Payment / eWallet / Order](#nailys-payment)
-    - [Link Preview](#nailys-linkpreview)
-    - [LID-to-PN Mapping](#nailys-lidtopn)
+- [Pairing (Custom Code)](#pairing)
+    - [Sticker & Sticker Pack](#sticker)
+    - [SWGC (Group Status)](#swgc)
+    - [Interactive Messages (Buttons, Carousel)](#interactive-messages)
+    - [ButtonV2 / locbtn (Location Header)](#buttonv2)
+    - [UPCH (Newsletter / Channel)](#upch)
+    - [AI-Rich Responses](#ai-rich)
+    - [Payment / eWallet / Order](#payment)
+    - [Link Preview](#link-preview)
+    - [LID-to-PN Mapping](#lid-to-pn)
 - [Disclaimer](#disclaimer)
 
 ---
@@ -621,8 +600,7 @@ await Nailys.updateGroupsAddPrivacy('contacts')
 
 ---
 
-# Nailys Native Features
-## Nailys Pairing
+## Pairing
 
 Custom pairing code support with auto phone-number formatting.
 
@@ -658,9 +636,9 @@ import {
 
 ---
 
-## Nailys Sticker
+## Sticker
 
-Native sticker & sticker pack builder — image/video → WebP conversion, EXIF injection, AI stickers, private/premium stickers.
+Image/video → WebP conversion, EXIF injection, AI stickers, private/premium stickers.
 
 ### `Nailys.sendSticker(jid, options)`
 
@@ -742,7 +720,7 @@ await Nailys.sendStickerPack(from, {
 
 ---
 
-## Nailys SWGC
+## SWGC
 
 **WhatsApp Status Group Content** — send status-like messages to groups with text formatting, images, videos, voice notes, and audience control.
 
@@ -780,8 +758,8 @@ await Nailys.swgc(groupJid, {
 ```ts
 await Nailys.swgcBuilder(groupJid)
     .text('Hello World')
-    .color('putih')          // text color
-    .bgcolor('merahtua')     // background color
+    .color('white')         // text color
+    .bgcolor('darkred')      // background color
     .font('fancy')           // font style
     .audience('custom', 'Close Friends', '❤️')
     .send()
@@ -840,24 +818,24 @@ await Nailys.swgc(groupJid, payload)
 
 | Name | Hex |
 |------|-----|
-| putih | `#FFFFFF` |
-| hitam | `#000000` |
-| merah | `#FF0000` |
-| hijau | `#00FF00` |
-| biru | `#0000FF` |
-| kuning | `#FFFF00` |
+| white | `#FFFFFF` |
+| black | `#000000` |
+| red | `#FF0000` |
+| green | `#00FF00` |
+| blue | `#0000FF` |
+| yellow | `#FFFF00` |
 | pink | `#FF69B4` |
-| ungu | `#800080` |
+| purple | `#800080` |
 | orange | `#FFA500` |
-| abu | `#808080` |
+| gray | `#808080` |
 | cyan | `#00FFFF` |
-| tosca | `#008080` |
-| coklat | `#8B4513` |
-| emas | `#FFD700` |
+| teal | `#008080` |
+| brown | `#8B4513` |
+| gold | `#FFD700` |
 | silver | `#C0C0C0` |
-| merahtua | `#8B0000` |
-| birutua | `#00008B` |
-| hijautua | `#006400` |
+| darkred | `#8B0000` |
+| darkblue | `#00008B` |
+| darkgreen | `#006400` |
 | lavender | `#E6E6FA` |
 
 Also supports raw HEX values (without `#`):
@@ -870,15 +848,15 @@ Nailys.COLORS                   // color map object
 
 ---
 
-## Nailys Interactive
+## Interactive Messages
 
-Native interactive message builders — buttons, bottom sheets, limited-time offers, carousels, and booking forms.
+Interactive message builders — buttons, bottom sheets, limited-time offers, carousels, and booking forms.
 
 
 ```ts
 await Nailys.sendButton(from, {
-    title: 'Menu Utama',
-    body: 'Silakan pilih opsi di bawah:',
+    title: 'Main Menu',
+    body: 'Please choose an option below:',
     footer: '© My Bot',
     contextInfo: { stanzaId: m.key.id, participant: m.key.participant, quotedMessage: m.message },
     buttons: [
@@ -891,9 +869,10 @@ await Nailys.sendButton(from, {
         title: 'Menu',
         sections: [{ title: 'Category', rows: [{ title: 'Option A', id: '.opta' }] }]
     }
+})
 ```
 
-### Carousel — Non-chain
+### Carousel
 
 ```ts
 await Nailys.sendCarousel(from, {
@@ -915,7 +894,7 @@ await Nailys.sendCarousel(from, {
 })
 ```
 
-### Native Methods Summary
+### Methods
 
 | Method | Builder | Purpose |
 |---|---|---|
@@ -926,11 +905,20 @@ await Nailys.sendCarousel(from, {
 
 ---
 
-## Nailys ButtonV2
+## ButtonV2
+
+```ts
+await Nailys.locbtn()
+    .setTitle('📍 My Location')
+    .setSubtitle('Jl. Example No. 123')
+    .setBody('Here is my location')
+    .locreply('📍 Ping', '.ping')
     .send(from, { quoted: m })
 ```
 
-### Non-chain — `Nailys.sendLocBtn(jid, opts)`
+### `Nailys.sendLocBtn(jid, opts)`
+
+Send a button message with a location header — uses `ButtonV2` internally.
 
 ```ts
 await Nailys.sendLocBtn(from, {
@@ -967,11 +955,17 @@ await Nailys.sendLocBtn(from, {
 
 ---
 
-## Nailys UPCH
+## UPCH
+
+```ts
+await Nailys.upch()
+    .image(imageBuffer, 'Amazing photo!')
     .sendch('120363424475734781@newsletter')
 ```
 
-### Non-chain — `Nailys.sendUpch(jid, payload)`
+### `Nailys.sendUpch(jid, payload)`
+
+Send content to a newsletter/channel — uses `UPCH` internally.
 
 ```ts
 // Send image
@@ -1017,11 +1011,19 @@ const jid = Nailys.normalizeNewsletterJid('https://whatsapp.com/channel/0029Va..
 
 ---
 
-## Nailys AI-Rich
+## AI-Rich
+
+```ts
+await Nailys.airich()
+    .setTitle('Response')
+    .addText('Hello! This supports **markdown**.')
+    .addCode('javascript', 'console.log("Hello");')
     .send(from, { quoted: m })
 ```
 
-### Non-chain — `Nailys.sendAIRich(jid, opts)`
+### `Nailys.sendAIRich(jid, opts)`
+
+Send AI-rich formatted responses with markdown, code blocks, tables, and more.
 
 ```ts
 await Nailys.sendAIRich(from, {
@@ -1051,9 +1053,16 @@ await Nailys.sendAIRich(from, {
 | `.addSuggest(text)` | Quick suggestion button |
 | `.setTitle(title)` | Response title |
 | `.setFooter(footer)` | Response footer |
-## Nailys Payment
+## Payment
 
-Native payment & order message builders.
+Payment & order message builders.
+
+```ts
+await Nailys.payment()
+    .amount(20000000, 100)
+    .currency('IDR')
+    .reference('REF-123')
+    .send(from, { quoted: m })
 
 await Nailys.order()
     .orderId('INV-1781789438996').orderTitle('Premium Package')
@@ -1063,7 +1072,7 @@ await Nailys.order()
     .send(from, { quoted: m })
 ```
 
-### Non-chain — `Nailys.sendPayment()` / `Nailys.sendEWallet()` / `Nailys.sendOrder()`
+### `Nailys.sendPayment()` / `Nailys.sendEWallet()` / `Nailys.sendOrder()`
 
 ```ts
 await Nailys.sendPayment(from, {
@@ -1077,7 +1086,7 @@ await Nailys.sendPayment(from, {
     shareStatus: true
 }, { quoted: m })
 
-// EWallet — non-chain
+// EWallet
 await Nailys.sendEWallet(from, 'dana', {
     key: '087873384161', name: 'DANA',
     fullName: 'John Doe', accountType: 'wallet',
@@ -1085,7 +1094,7 @@ await Nailys.sendEWallet(from, 'dana', {
     items: [{ name: 'Donation', value: 50000, offset: 100, quantity: 1 }]
 }, { quoted: m })
 
-// Order — non-chain
+// Order
 await Nailys.sendOrder(from, {
     orderId: 'INV-123', orderTitle: 'Package',
     sellerJid: '628xxx:85@s.whatsapp.net', token: 'TOKEN',
@@ -1098,13 +1107,15 @@ Supported wallets: `dana`, `gopay`, `ovo`, `linkaja`, `seabank`, `qris`, `shopep
 
 ---
 
-## Nailys LinkPreview
+## Link Preview
 
 **Link preview builder** — Create rich link previews with thumbnails.
 
 > Link preview **cannot** be combined with buttons, interactive, or rich media — this is a WhatsApp protocol limitation.
 
-### Non-chain — `Nailys.sendLinkPreview(jid, opts)`
+### `Nailys.sendLinkPreview(jid, opts)`
+
+Send a message with a rich link preview thumbnail.
 
 ```ts
 await Nailys.sendLinkPreview(from, {
@@ -1138,7 +1149,7 @@ await Nailys.sendLinkPreview(from, {
 
 ---
 
-## Nailys LID-to-PN
+## LID-to-PN
 
 **LID (Linked Device ID) ↔ Phone Number mapping** — `Nailys.lidToPn()` / `Nailys.pnToLid()`.
 
