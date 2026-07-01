@@ -625,6 +625,17 @@ await sock.updateGroupsAddPrivacy('contacts')
 
 All features below are available directly on the socket — **no imports, no patches, no disk hacks**.
 
+### Two API Styles
+
+Every Nailys feature supports **two ways** to use it:
+
+| Style | Description | Example |
+|-------|-------------|---------|
+| **Chain (Builder)** | Method chaining — `.setTitle().setBody().send()` | `sock.button().setTitle('Hi').send(from)` |
+| **Non-chain (Object)** | Pass all options as a plain object — like Baileys original style | `sock.sendButton(from, { title: 'Hi' })` |
+
+> **Tip:** Use **chain** for complex compositions (many buttons, lists, offers). Use **non-chain** for simplicity (quick messages, dynamic options).
+
 ---
 
 ## Nailys Pairing
@@ -879,7 +890,12 @@ sock.COLORS                   // color map object
 
 Native interactive message builders — buttons, bottom sheets, limited-time offers, carousels, and booking forms.
 
-### `sock.button()` — InteractiveBuilder
+Two styles available:
+
+**🔗 Chain (Builder):** `sock.button().setTitle(...).setBody(...).send(jid)`
+**📦 Non-chain (Object):** `sock.sendButton(jid, { title, body, buttons: [...] })`
+
+### `sock.button()` — InteractiveBuilder (Chain)
 
 ```ts
 await sock.button()
@@ -891,17 +907,10 @@ await sock.button()
         participant: m.key.participant || m.key.remoteJid,
         quotedMessage: m.message
     })
-    // Quick Reply button
     .qreplybtn('display: Profile', 'value: .profile')
-    // CTA Copy button
     .copybtn('display: Copy Code', 'code: ABC-123', 'icon: PROMOTION')
-    // CTA URL button
     .urlbtn('display: Website', 'url: https://example.com')
-    // CTA Call button
     .callbtn('display: Call CS', 'phone: 628123456789')
-    // Galaxy/Native Flow button
-    .galaxybtn('Feedback', 'SATISFACTION_SCREEN')
-    // List button
     .listbtn('display: Menu', [
         {
             title: 'Category',
@@ -914,7 +923,28 @@ await sock.button()
     .send(from)
 ```
 
-### Bottom Sheet
+### `sock.sendButton(jid, opts)` — Non-chain
+
+```ts
+await sock.sendButton(from, {
+    title: 'Menu Utama',
+    body: 'Silakan pilih opsi di bawah:',
+    footer: '© My Bot',
+    contextInfo: { stanzaId: m.key.id, participant: m.key.participant, quotedMessage: m.message },
+    buttons: [
+        { type: 'reply', display: 'Profile', value: '.profile' },
+        { type: 'copy',   display: 'Copy Code', code: 'ABC-123' },
+        { type: 'url',    display: 'Website',   url: 'https://example.com' },
+        { type: 'call',   display: 'Call CS',   phone: '628123456789' }
+    ],
+    list: {
+        title: 'Menu',
+        sections: [{ title: 'Category', rows: [{ title: 'Option A', id: '.opta' }] }]
+    }
+})
+```
+
+### Bottom Sheet (Chain)
 
 ```ts
 await sock.button()
@@ -972,7 +1002,7 @@ await sock.button()
     .send(from)
 ```
 
-### `sock.carouselBuilder()` — Carousel
+### Carousel — Chain
 
 ```ts
 const defaultMedia = { image: { url: 'https://placehold.co/600x400/png' } }
@@ -980,10 +1010,8 @@ const defaultMedia = { image: { url: 'https://placehold.co/600x400/png' } }
 const card1 = await sock.cardBuilder()
     .setTitle('Card 1')
     .setBody('Card 1 body')
-    .setFooter('Footer 1')
     .setMedia(defaultMedia)
     .qreplybtn('display: Action', 'value: .action1')
-    .offer('text: Limited Offer', 'exp: day')
     .build()
 
 const card2 = await sock.cardBuilder()
@@ -996,13 +1024,31 @@ const card2 = await sock.cardBuilder()
 await sock.carouselBuilder()
     .setBody('Main carousel message')
     .setFooter('Footer text')
-    .setContextInfo({
-        stanzaId: m.key.id,
-        participant: m.key.participant || m.key.remoteJid,
-        quotedMessage: m.message
-    })
+    .setContextInfo({ stanzaId: m.key.id, participant: m.key.participant, quotedMessage: m.message })
     .addcard(card1, card2)
     .send(from)
+```
+
+### Carousel — Non-chain
+
+```ts
+await sock.sendCarousel(from, {
+    body: 'Main carousel message',
+    footer: 'Footer text',
+    contextInfo: { stanzaId: m.key.id, participant: m.key.participant, quotedMessage: m.message },
+    cards: [
+        {
+            title: 'Card 1', body: 'Card 1 body',
+            media: { image: { url: 'https://placehold.co/600x400/png' } },
+            buttons: [{ type: 'reply', display: 'Action', value: '.action1' }]
+        },
+        {
+            title: 'Card 2', body: 'Card 2 body',
+            media: { image: { url: 'https://placehold.co/600x400/png' } },
+            buttons: [{ type: 'reply', display: 'Visit', value: 'https://example.com' }]
+        }
+    ]
+})
 ```
 
 ### Native Methods Summary
@@ -1020,8 +1066,9 @@ await sock.carouselBuilder()
 
 **Old-style button messages with location header** — `sock.locbtn()`.
 
+### Chain — `sock.locbtn()`
+
 ```ts
-// Basic quick reply
 await sock.locbtn()
     .setBody('Choose an option:')
     .setFooter('Footer text')
@@ -1038,29 +1085,30 @@ await sock.locbtn()
     .locreply('📍 Ping', '.ping')
     .locreply('📋 Menu', '.menu')
     .send(from, { quoted: m })
+```
 
-// List button (single select)
-await sock.locbtn()
-    .setBody('Select menu:')
-    .loclist({
-        buttonText: { displayText: '📋 Menu' },
-        buttonId: 'menu_select',
-        type: 1,
-        nativeFlowInfo: {
-            name: 'single_select',
-            paramsJson: JSON.stringify({
-                title: 'Menu List',
-                sections: [{
-                    title: 'Category',
-                    rows: [
-                        { title: 'Option 1', description: 'Desc', id: '.opt1' },
-                        { title: 'Option 2', description: 'Desc', id: '.opt2' }
-                    ]
-                }]
-            })
-        }
-    })
-    .send(from, { quoted: m })
+### Non-chain — `sock.sendLocBtn(jid, opts)`
+
+```ts
+await sock.sendLocBtn(from, {
+    body: 'Choose an option:',
+    footer: 'Footer text',
+    buttons: [
+        { display: '👤 Profile', id: '.profile' },
+        { display: '⚙️ Settings', id: '.settings' }
+    ]
+}, { quoted: m })
+
+// With location header
+await sock.sendLocBtn(from, {
+    title: '📍 My Location',
+    subtitle: 'Jl. Example No. 123',
+    body: 'Here is my location',
+    buttons: [
+        { display: '📍 Ping', id: '.ping' },
+        { display: '📋 Menu', id: '.menu' }
+    ]
+}, { quoted: m })
 ```
 
 | Method | Description |
@@ -1070,8 +1118,6 @@ await sock.locbtn()
 | `setBody(text)` | Body text |
 | `setFooter(text)` | Footer text |
 | `setThumbnail(url\|buffer)` | Set thumbnail |
-| `setLocationThumbnailFromBuffer(buffer)` | Thumbnail from buffer |
-| `setLocationThumbnailFromUrl(url)` | Thumbnail from URL |
 | `setLocationThumbnailFromQuoted(quoted)` | Thumbnail from reply |
 | `locreply(display, id)` | Quick reply button |
 | `loclist(obj)` | List/select button |
@@ -1080,7 +1126,9 @@ await sock.locbtn()
 
 ## Nailys UPCH
 
-**Newsletter / Channel posting** — `sock.upch()`. Send images, videos, audio (with 4-step ffmpeg conversion to OGG Opus), and PTV (Picture-in-Picture Video) to WhatsApp Channels.
+**Newsletter / Channel posting** — Send images, videos, audio (with 4-step ffmpeg conversion to OGG Opus), and PTV to WhatsApp Channels.
+
+### Chain — `sock.upch()`
 
 ```ts
 // Send image to channel
@@ -1100,17 +1148,30 @@ await sock.upch()
     .audio(buffer)
     .caption('Voice message')
     .sendch('120363424475734781@newsletter')
+```
+
+### Non-chain — `sock.sendUpch(jid, payload)`
+
+```ts
+// Send image
+await sock.sendUpch('120xxx@newsletter', {
+    type: 'image', buffer: imageBuffer, caption: 'Amazing photo!'
+})
+
+// Send video
+await sock.sendUpch('120xxx@newsletter', {
+    type: 'video', buffer: videoBuffer, caption: 'Watch this!'
+})
+
+// Send audio (auto OGG Opus conversion)
+await sock.sendUpch('120xxx@newsletter', {
+    type: 'audio', buffer: audioBuffer, caption: 'Voice message'
+})
 
 // Send PTV to chat
-await sock.upch()
-    .video(buffer, { ptv: true })
-    .caption('PTV video')
-    .send(chatJid, { quoted: m })
-
-// Send from replied media (auto-detect)
-await sock.upch()
-    .caption('My caption')
-    .sendch('120xxx@newsletter', { quotedMessage: m })
+await sock.sendUpch(chatJid, {
+    type: 'video', buffer: videoBuffer, ptv: true
+}, { quoted: m })
 ```
 
 ### Audio Pipeline
@@ -1137,7 +1198,9 @@ const jid = sock.normalizeNewsletterJid('https://whatsapp.com/channel/0029Va...'
 
 ## Nailys AI-Rich
 
-**AI-style rich responses** — `sock.airich()`. Build complex messages with markdown text, code blocks, tables, images, videos, posts, reels, products, and suggestions — all chained fluently.
+**AI-style rich responses** — Build complex messages with markdown text, code blocks, tables, images, and suggestions.
+
+### Chain — `sock.airich()`
 
 ```ts
 await sock.airich()
@@ -1151,6 +1214,19 @@ await sock.airich()
     .addTip('Make sure your input is valid.')
     .addSuggest('Show main menu')
     .send(from, { quoted: m })
+```
+
+### Non-chain — `sock.sendAIRich(jid, opts)`
+
+```ts
+await sock.sendAIRich(from, {
+    title: 'Response',
+    text: 'Hello! This supports **markdown**.',
+    code: { language: 'javascript', code: 'console.log("Hello");' },
+    table: [['Feature', 'Status'], ['Code Block', '✅ Active']],
+    tip: 'Make sure your input is valid.',
+    suggest: 'Show main menu'
+}, { quoted: m })
 ```
 
 ### All Methods
@@ -1213,7 +1289,7 @@ await sock.airich()
 
 Native payment & order message builders.
 
-### `sock.payment()` — PaymentBuilder
+### Chain — `sock.payment()` / `sock.ewallet()` / `sock.order()`
 
 ```ts
 await sock.payment()
@@ -1224,118 +1300,108 @@ await sock.payment()
     .type('digital-goods')
     .status('captured')
     .orderDescription('Premium package purchase')
-    .tax(8, 100)
-    .discount(6400, 100)
-    .shipping(4, 100)
-    .item({
-        retailer_id: 'PROD-1',
-        name: 'Premium Package',
-        value: 900000,
-        offset: 100,
-        quantity: 1
-    })
+    .tax(8, 100).discount(6400, 100).shipping(4, 100)
+    .item({ retailer_id: 'PROD-1', name: 'Premium Package', value: 900000, offset: 100, quantity: 1 })
     .nativePaymentMethods([{ name: 'PIX', enabled: false }])
     .shareStatus(true)
     .send(from, { quoted: m })
-```
 
-### `sock.ewallet(name)` — EWalletBuilder
-
-```ts
+// EWallet
 await sock.ewallet('dana')
-    .key('087873384161')
-    .name('DANA')
-    .institution('DANA')
-    .fullName('John Doe')
-    .accountType('wallet')
-    .amount(50000, 100)   // Rp 500
-    .reference('DANA-123')
+    .key('087873384161').name('DANA')
+    .institution('DANA').fullName('John Doe').accountType('wallet')
+    .amount(50000, 100).reference('DANA-123')
     .item({ name: 'Donation', value: 50000, offset: 100, quantity: 1 })
     .send(from, { quoted: m })
+
+// Order
+await sock.order()
+    .orderId('INV-1781789438996').orderTitle('Premium Package')
+    .sellerJid('6281330586274:85@s.whatsapp.net').token('INV-TOKEN-1781789438996')
+    .totalAmountRaw(50000000).currency('IDR').message('Thank you!')
+    .itemCount(1).status(1).surface(1)
+    .send(from, { quoted: m })
+```
+
+### Non-chain — `sock.sendPayment()` / `sock.sendEWallet()` / `sock.sendOrder()`
+
+```ts
+await sock.sendPayment(from, {
+    body: 'Order details',
+    footer: 'Thank you',
+    amount: 20000000, offset: 100,
+    reference: 'REF-123', type: 'digital-goods', status: 'captured',
+    description: 'Premium package purchase',
+    items: [{ retailer_id: 'PROD-1', name: 'Premium Package', value: 900000, offset: 100, quantity: 1 }],
+    tax: 8, discount: 6400, shipping: 4,
+    shareStatus: true
+}, { quoted: m })
+
+// EWallet — non-chain
+await sock.sendEWallet(from, 'dana', {
+    key: '087873384161', name: 'DANA',
+    fullName: 'John Doe', accountType: 'wallet',
+    amount: 50000, reference: 'DANA-123',
+    items: [{ name: 'Donation', value: 50000, offset: 100, quantity: 1 }]
+}, { quoted: m })
+
+// Order — non-chain
+await sock.sendOrder(from, {
+    orderId: 'INV-123', orderTitle: 'Package',
+    sellerJid: '628xxx:85@s.whatsapp.net', token: 'TOKEN',
+    totalAmount: 50000000, currency: 'IDR', message: 'Thanks!',
+    itemCount: 1, status: 1, surface: 1
+}, { quoted: m })
 ```
 
 Supported wallets: `dana`, `gopay`, `ovo`, `linkaja`, `seabank`, `qris`, `shopepay`.
-
-### `sock.order()` — OrderBuilder
-
-```ts
-await sock.order()
-    .orderId('INV-1781789438996')
-    .orderTitle('Premium Package')
-    .sellerJid('6281330586274:85@s.whatsapp.net')
-    .token('INV-TOKEN-1781789438996')
-    .totalAmountRaw(50000000)  // totalAmount1000 = 50000000 → Rp 50.000
-    .currency('IDR')
-    .message('Thank you for your purchase!')
-    .itemCount(1)
-    .status(1)
-    .surface(1)
-    .send(from, { quoted: m })
-
-// With profile picture as thumbnail
-await sock.order()
-    .orderId('INV-123')
-    .orderTitle('Package')
-    .sellerJid('628xxx:85@s.whatsapp.net')
-    .token('TOKEN')
-    .totalAmountRaw(50000000)
-    .currency('IDR')
-    .message('Thanks!')
-    .thumbnailFromProfile('628xxx@s.whatsapp.net')
-    .send(from, { quoted: m })
-```
-
-> `totalAmount1000` = price × 1000. Example: Rp 50.000 → `totalAmount1000: 50000000`.
 
 ---
 
 ## Nailys LinkPreview
 
-**Link preview builder** — `sock.linkpreview()`.
+**Link preview builder** — Create rich link previews with thumbnails.
 
 > Link preview **cannot** be combined with buttons, interactive, or rich media — this is a WhatsApp protocol limitation.
 
+### Chain — `sock.linkpreview()`
+
 ```ts
-// Basic small preview
 await sock.linkpreview()
-    .image(buffer)
-    .link('https://example.com')
-    .title('Example Title')
-    .description('Preview description')
-    .type('small')
-    .text('Check this link!')
-    .send(from, { quoted: m })
-
-// High quality (big) preview
-await sock.linkpreview()
-    .image(buffer)
-    .link('https://example.com')
-    .title('Example Title')
-    .description('Preview description')
-    .type('big')
-    .text('Check this link!')
-    .send(from, { quoted: m })
-
-// Auto-fetch image from URL
-await sock.linkpreview()
-    .image('https://example.com/thumb.jpg')
-    .link('https://example.com')
-    .title('Example')
-    .description('Auto-fetched')
-    .type('small')
-    .text('Check this link!')
+    .image(buffer).link('https://example.com')
+    .title('Example Title').description('Preview')
+    .type('small').text('Check this link!')
     .send(from, { quoted: m })
 ```
 
-| Method | Description |
+### Non-chain — `sock.sendLinkPreview(jid, opts)`
+
+```ts
+await sock.sendLinkPreview(from, {
+    image: buffer,
+    link: 'https://example.com',
+    title: 'Example Title',
+    description: 'Preview description',
+    type: 'small',
+    text: 'Check this link!'
+}, { quoted: m })
+
+// High quality (big) preview
+await sock.sendLinkPreview(from, {
+    image: buffer, link: 'https://example.com',
+    title: 'Example Title', description: 'Preview',
+    type: 'big', text: 'Check this link!'
+}, { quoted: m })
+```
+
+| Property | Description |
 |---|---|
-| `.image(Buffer\|string)` | Thumbnail image |
-| `.text(string)` | Caption text (auto-appends link if missing) |
-| `.link(string)` | URL to preview |
-| `.title(string)` | Preview title |
-| `.description(string)` | Preview description |
-| `.type('small'\|'big')` | `small` = raw buffer. `big` = server upload (higher quality) |
-| `.send(jid, options)` | Send the link preview |
+| `image` (Buffer\|string) | Thumbnail image |
+| `text` (string) | Caption text (auto-appends link) |
+| `link` (string) | URL to preview |
+| `title` (string) | Preview title |
+| `description` (string) | Preview description |
+| `type` ('small'\|'big') | `small` = raw buffer. `big` = server upload |
 
 - `type('big')` uploads to WhatsApp server for higher quality.
 - `type('small')` uses local raw buffer as `jpegThumbnail`.
@@ -1346,7 +1412,7 @@ await sock.linkpreview()
 
 **LID (Linked Device ID) ↔ Phone Number mapping** — `sock.lidToPn()` / `sock.pnToLid()`.
 
-Automatically learns mappings from contacts, messages, and group participants. Persisted to `./database/lid-map.json`.
+Automatically learns mappings from contacts, messages, and group participants. Uses in-memory LID store (`sock.signalRepository.lidMapping`) — **no file writes, no database**.
 
 ```ts
 // Convert LID to phone number JID

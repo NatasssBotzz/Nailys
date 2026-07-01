@@ -2567,6 +2567,34 @@ export const patchNewsletter = (sock: any) => {
 	const helper = makeNewsletterHelper(sock)
 	Object.assign(sock, helper)
 	patchUpchBuilder(sock)
+
+	// ── Non-chain convenience method ─────────────────────
+	sock.sendUpch = async (jid: string, payload: any = {}, options: any = {}) => {
+		const u = new UpchBuilder(sock)
+		if (payload.type === 'image' || payload.image) {
+			u.image(payload.image || payload.buffer)
+			if (payload.caption) u.caption(payload.caption)
+			return u.sendch(jid, options)
+		}
+		if (payload.type === 'video' || payload.video) {
+			u.video(payload.video || payload.buffer, { ptv: payload.ptv })
+			if (payload.caption) u.caption(payload.caption)
+			return payload.ptv ? u.send(jid, options) : u.sendch(jid, options)
+		}
+		if (payload.type === 'audio' || payload.audio) {
+			u.audio(payload.audio || payload.buffer)
+			if (payload.caption) u.caption(payload.caption)
+			if (payload.ptv) u.ptv()
+			return payload.ptv ? u.send(jid, options) : u.sendch(jid, options)
+		}
+		if (payload.type === 'sticker' || payload.sticker) {
+			// sticker via sendMessage
+			return sock.sendMessage(jid, { sticker: payload.sticker || payload.buffer }, options)
+		}
+		// text fallback
+		return sock.sendMessage(jid, { text: String(payload.text || payload.caption || '') }, options)
+	}
+
 	return sock
 }
 
@@ -4035,6 +4063,12 @@ export function patchSocketAIRich(sock: any): any {
 
 	sock.airich = () => new AIRich(sock)
 
+	sock.sendAIRich = async (jid: string, opts: any = {}) => {
+		const a = new AIRich(sock)
+		if (opts.prompt) a.setPrompt(opts.prompt)
+		if (opts.system) a.setSystem(opts.system)
+		return a.send(jid, opts)
+	}
 	return sock
 }
 
@@ -4285,6 +4319,15 @@ class ButtonV2 {
 export function patchSocketButtonV2(sock: any): any {
 	sock.ButtonV2 = ButtonV2
 	sock.locbtn = () => new ButtonV2(sock)
+	sock.sendLocBtn = async (jid: string, opts: any = {}) => {
+		const b = new ButtonV2(sock)
+		if (opts.title) b.setTitle(opts.title)
+		if (opts.body) b.setBody(opts.body)
+		if (opts.footer) b.setFooter(opts.footer)
+		if (opts.subtitle) b.setSubtitle(opts.subtitle)
+		if (opts.contextInfo) b.setContextInfo(opts.contextInfo)
+		return b.send(jid, opts)
+	}
 	return sock
 }
 
@@ -5112,6 +5155,31 @@ export function patchSocketInteractive(sock: any): any {
 	sock.CarouselBuilder = CarouselBuilder
 	sock.CarouselCardBuilder = CarouselCardBuilder
 
+	sock.sendButton = async (jid: string, opts: any = {}) => {
+		const b = new InteractiveBuilder(sock)
+		if (opts.title) b.setTitle(opts.title)
+		if (opts.body) b.setBody(opts.body)
+		if (opts.footer) b.setFooter(opts.footer)
+		if (opts.buttons) {
+			for (const btn of opts.buttons) {
+				if (btn.type === 'url') b.urlbtn(btn.text, btn.url)
+				else if (btn.type === 'copy') b.copybtn(btn.text, btn.copyText)
+				else if (btn.type === 'call') b.callbtn(btn.text, btn.phone)
+				else b.qreplybtn(btn.text, btn.id || btn.text)
+			}
+		}
+		if (opts.contextInfo) b.setContextInfo(opts.contextInfo)
+		if (opts.offer) b.offer(opts.offer)
+		return b.send(jid, opts)
+	}
+	sock.sendCarousel = async (jid: string, cards: any[] = [], opts: any = {}) => {
+		const c = new CarouselBuilder(sock)
+		if (opts.body) c.setBody(opts.body)
+		if (opts.footer) c.setFooter(opts.footer)
+		for (const card of cards) c.addCard(card)
+		if (opts.contextInfo) c.setContextInfo(opts.contextInfo)
+		return c.send(jid, opts)
+	}
 	sock.sendInteractiveMessage = sendInteractiveMessage
 	sock.sendCarouselMessage = sendCarouselMessage
 	sock.createCarouselCard = createCarouselCard
@@ -6149,6 +6217,31 @@ export function usePayment(sock: any): any {
 	sock.paymentKeyAdditionalNodes = paymentKeyAdditionalNodes
 	sock.__paymentBuilderVersion = version
 
+	sock.sendPayment = async (chatId: string, opts: any = {}) => {
+		const p = new PaymentBuilder(sock, chatId)
+		if (opts.amount !== undefined) p.amount(opts.amount, opts.offset)
+		if (opts.currency) p.currency(opts.currency)
+		if (opts.reference) p.reference(opts.reference)
+		if (opts.note) p.note(opts.note)
+		return sock.sendMessage(chatId, p.build(), opts)
+	}
+	sock.sendEWallet = async (chatId: string, opts: any = {}) => {
+		const e = new EWalletBuilder(sock, chatId)
+		if (opts.amount !== undefined) e.amount(opts.amount, opts.offset)
+		if (opts.currency) e.currency(opts.currency)
+		if (opts.reference) e.reference(opts.reference)
+		if (opts.note) e.note(opts.note)
+		return sock.sendMessage(chatId, e.build(), opts)
+	}
+	sock.sendOrder = async (chatId: string, opts: any = {}) => {
+		const o = new OrderBuilder(sock, chatId)
+		if (opts.orderTitle) o.orderTitle(opts.orderTitle)
+		if (opts.sellerJid) o.sellerJid(opts.sellerJid)
+		if (opts.token) o.token(opts.token)
+		if (opts.orderId) o.orderId(opts.orderId)
+		if (opts.thumbnail) o.thumbnail(opts.thumbnail)
+		return sock.sendMessage(chatId, o.build(), opts)
+	}
 	return sock
 }
 
@@ -6259,6 +6352,15 @@ export class LinkPreviewBuilder {
 			}
 		}
 
+	sock.sendLinkPreview = async (jid: string, text: string, url: string, opts: any = {}) => {
+		const l = new LinkPreviewBuilder(sock)
+		l.text(text).link(url)
+		if (opts.title) l.title(opts.title)
+		if (opts.description) l.description(opts.description)
+		if (opts.image) l.image(opts.image)
+		if (opts.previewType) l.type(opts.previewType)
+		return l.send(jid, opts)
+	}
 		return await this.#sock.sendMessage(
 			jid,
 			{
