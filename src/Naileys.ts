@@ -1774,6 +1774,17 @@ export function patchSocketStickerPack(sock: any): any {
 				}
 			}
 
+			// Rewrite EXIF metadata with packname/author/type/ai from options
+			const wm = {
+				packname: options.packname || options.name || 'Sticker',
+				author: options.author || options.publisher || ''
+			};
+			const exifOpts = {
+				type: Number(options.type) || 1,
+				ai: Boolean(options.ai)
+			};
+			finalBuffer = await writeExif(finalBuffer, wm, exifOpts);
+
 			const hashB64 = crypto.createHash('sha256').update(finalBuffer).digest('base64')
 				.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+\$/g, '');
 			const fileName = `${hashB64}.webp`;
