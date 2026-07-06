@@ -1392,7 +1392,7 @@ async function buildStickerPackThumbnail(stickerBuffer: Buffer): Promise<any> {
 
 async function buildStickerPackZip(entries: any[] = [], trayThumb: any = null): Promise<Buffer> {
 	return await new Promise((resolve, reject) => {
-		const archive = loadArchiver()('zip', { zlib: { level: 9 } })
+		const archive = loadArchiver()('zip', { store: true })
 		const chunks: Buffer[] = []
 		archive.on('warning', (err: any) => {
 			if (err?.code !== 'ENOENT') reject(err)
@@ -1548,7 +1548,7 @@ async function buildSingleStickerPackMessage(stickerPack: any, ctx: any = {}): P
 		thumbnailEncSha256: toBufferBytes(thumbMedia?.fileEncSha256) || crypto.randomBytes(32),
 		thumbnailHeight: Number(thumbMedia?.height || trayThumb.height || 96),
 		thumbnailWidth: Number(thumbMedia?.width || trayThumb.width || 96),
-		imageDataHash: toHexSha256(trayThumb.buffer),
+		imageDataHash: toB64(trayThumb.buffer),
 		stickerPackSize: zipBuffer.length,
 		stickerPackOrigin: Number.isFinite(Number(normalized.stickerPackOrigin))
 			? Number(normalized.stickerPackOrigin)
@@ -1673,7 +1673,10 @@ export function patchSocketStickerPack(sock: any): any {
 		const sendSingle = async (payload: any) => {
 			const msg = generateWAMessageFromContent(
 				jid,
-				{ stickerPackMessage: payload },
+				{
+				messageContextInfo: { messageSecret: crypto.randomBytes(32) },
+				stickerPackMessage: payload
+			},
 				{
 					userJid,
 					quoted: options.quoted
