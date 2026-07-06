@@ -31,6 +31,15 @@ function loadWebpmux() {
 function loadArchiver() {
 	try { return _require('archiver') } catch { return null }
 }
+function loadJSZip() {
+    try {
+        return _require('jszip');
+    }
+    catch {
+        return null;
+    }
+}
+
 
 import $protobuf from 'protobufjs/minimal.js'
 
@@ -1382,6 +1391,114 @@ async function normalizeStickerEntry(
 	}
 }
 
+
+async function makeTrayWebp(buffer: Buffer): Promise<Buffer> {
+	const sharp = loadSharp();
+	if (!sharp) throw new Error('sharp tidak terinstall');
+	return sharp(buffer, { animated: false })
+		.resize(252, 252, { fit: 'cover' })
+		.webp()
+		.toBuffer();
+}
+
+async function makeThumbnailJpeg(buffer: Buffer): Promise<Buffer> {
+	const sharp = loadSharp();
+	if (!sharp) throw new Error('sharp tidak terinstall');
+	return sharp(buffer)
+		.resize(252, 252, { fit: 'cover' })
+		.jpeg()
+		.toBuffer();
+}
+
+async function uploadToServer(sock: any, buffer: Buffer, opts: { hkdf: string; mediaPath: string; mediaKey?: Buffer }): Promise<any> {
+	const mediaKey = opts.mediaKey || crypto.randomBytes(32);
+	const expanded = Buffer.from(
+		crypto.hkdfSync('sha256', mediaKey, Buffer.alloc(32), Buffer.from(opts.hkdf), 112)
+	);
+	const iv = expanded.subarray(0, 16);
+	const cipherKey = expanded.subarray(16, 48);
+	const macKey = expanded.subarray(48, 80);
+
+	const cipher = crypto.createCipheriv('aes-256-cbc', cipherKey, iv);
+	const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
+
+	const mac = crypto.createHmac('sha256', macKey)
+		.update(iv).update(encrypted).digest().subarray(0, 10);
+
+	const encBuffer = Buffer.concat([encrypted, mac]);
+	const fileSha256 = crypto.createHash('sha256').update(buffer).digest();
+	const fileEncSha256 = crypto.createHash('sha256').update(encBuffer).digest();
+
+	const iq = await sock.query({
+		tag: 'iq',
+		attrs: {
+			id: sock.generateMessageTag?.() || `IQ-${Date.now()}`,
+			to: 's.whatsapp.net',
+			type: 'set',
+			xmlns: 'w:m'
+		},
+		content: [{ tag: 'media_conn', attrs: {} }]
+	});
+
+	const mediaConn = iq?.content?.find((v: any) => v?.tag === 'media_conn');
+	if (!mediaConn) throw new Error('media_conn tidak ditemukan');
+
+	const auth = mediaConn.attrs?.auth;
+	if (!auth) throw new Error('auth media_conn tidak ditemukan');
+
+	const hosts: string[] = (mediaConn.content || [])
+		.filter((v: any) => v?.tag === 'host')
+		.map((v: any) => v?.attrs?.hostname)
+		.filter(Boolean);
+
+	if (!hosts.length) throw new Error('host upload tidak ditemukan');
+
+	const tokenB64 = fileEncSha256.toString('base64')
+		.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+\$/g, '');
+	const token = encodeURIComponent(tokenB64);
+
+	let lastError: any;
+	for (const host of hosts) {
+		try {
+			const json = await new Promise<any>((resolve, reject) => {
+				const https = _require('https');
+				const url = new URL(
+					`https://${host}${opts.mediaPath}/${token}?auth=${encodeURIComponent(auth)}&token=${token}`
+				);
+				const req = https.request({
+					hostname: url.hostname,
+					port: 443,
+					path: url.pathname + url.search,
+					method: 'POST',
+					headers: {
+						'Origin': 'https://web.whatsapp.com',
+						'Referer': 'https://web.whatsapp.com/',
+						'Content-Type': 'application/octet-stream',
+						'Content-Length': encBuffer.length
+					}
+				}, (res: any) => {
+					let body = '';
+					res.on('data', (c: string) => body += c);
+					res.on('end', () => {
+						if (res.statusCode < 200 || res.statusCode >= 300)
+							return reject(new Error(`Upload gagal ${res.statusCode}: ${body}`));
+						try { resolve(JSON.parse(body)); }
+						catch { reject(new Error(`Response bukan JSON: ${body}`)); }
+					});
+				});
+				req.on('error', reject);
+				req.write(encBuffer);
+				req.end();
+			});
+
+			const directPath = json.direct_path ?? json.directPath ?? json.url ?? json.path;
+			if (!directPath) throw new Error('directPath tidak ditemukan');
+
+			return { mediaKey, fileLength: buffer.length, fileSha256, fileEncSha256, directPath, ...json };
+		} catch (e) { lastError = e; }
+	}
+	throw lastError ?? new Error('Semua host upload gagal');
+}
 async function buildStickerPackThumbnail(stickerBuffer: Buffer): Promise<any> {
 	const png = await loadSharp()(stickerBuffer, { animated: true, pages: 1 })
 		.resize(96, 96, { fit: 'cover' })
@@ -1391,21 +1508,12 @@ async function buildStickerPackThumbnail(stickerBuffer: Buffer): Promise<any> {
 }
 
 async function buildStickerPackZip(entries: any[] = [], trayThumb: any = null): Promise<Buffer> {
-	return await new Promise((resolve, reject) => {
-		const archive = loadArchiver()('zip', { store: true })
-		const chunks: Buffer[] = []
-		archive.on('warning', (err: any) => {
-			if (err?.code !== 'ENOENT') reject(err)
-		})
-		archive.on('error', reject)
-		archive.on('data', (chunk: Buffer) => chunks.push(chunk))
-		archive.on('end', () => {
-			resolve(Buffer.concat(chunks))
-		})
-		for (const entry of entries) archive.append(entry.buffer, { name: entry.fileName })
-		if (trayThumb?.buffer) archive.append(trayThumb.buffer, { name: 'tray.png' })
-		archive.finalize().catch(reject)
-	})
+	const JSZip = loadJSZip();
+	if (!JSZip) throw new Error('JSZip tidak terinstall. npm install jszip');
+	const zip = new JSZip();
+	for (const entry of entries) zip.file(entry.fileName, entry.buffer);
+	if (trayThumb?.buffer) zip.file('tray.png', trayThumb.buffer);
+	return await zip.generateAsync({ type: 'nodebuffer', compression: 'STORE' });
 }
 
 function extractUploadedMessage(media: any = {}) {
@@ -1424,41 +1532,13 @@ function extractUploadedMessage(media: any = {}) {
 	)
 }
 
-async function uploadStickerPackBlob(buffer: Buffer, ctx: any = {}, fileName: string = 'sticker-pack.zip'): Promise<any> {
-	const upload = ctx?.upload || ctx?.sock?.waUploadToServer
-	if (typeof upload !== 'function') throw new Error('upload/waUploadToServer tidak tersedia untuk sticker pack')
-
-	const { mediaKey, encFilePath, originalFilePath, fileEncSha256, fileSha256, fileLength } = await encryptedStream(
-		buffer,
-		'sticker-pack' as any,
-		{ logger: ctx?.logger, saveOriginalFileIfRequired: false, opts: ctx?.options }
-	)
-
-	try {
-		const uploaded = await upload(encFilePath, {
-			mediaType: 'sticker-pack',
-			fileEncSha256B64: toB64(fileEncSha256),
-			timeoutMs: ctx?.mediaUploadTimeoutMs
-		})
-		return {
-			url: uploaded?.mediaUrl || uploaded?.url || '',
-			directPath: uploaded?.directPath || uploaded?.direct_path || '',
-			handle: uploaded?.handle,
-			mediaKey,
-			fileEncSha256,
-			fileSha256,
-			fileLength,
-			fileName,
-			mediaKeyTimestamp: Math.floor(Date.now() / 1000)
-		}
-	} finally {
-		try {
-			if (encFilePath && fs.existsSync(encFilePath)) fs.unlinkSync(encFilePath)
-		} catch {}
-		try {
-			if (originalFilePath && fs.existsSync(originalFilePath)) fs.unlinkSync(originalFilePath)
-		} catch {}
-	}
+async function uploadStickerPackBlob(buffer: Buffer, ctx: any = {}, fileName: string = 'sticker-pack.zip') {
+	const sock = ctx?.sock;
+	if (!sock) throw new Error('sock diperlukan untuk upload');
+	return await uploadToServer(sock, buffer, {
+		hkdf: 'WhatsApp Sticker Pack Keys',
+		mediaPath: '/mms/sticker-pack'
+	});
 }
 
 function normalizeStickerPackInput(input: any = {}) {
@@ -1667,34 +1747,101 @@ export function patchSocketStickerPack(sock: any): any {
 	}
 
 	sock.sendStickerPack = async (jid: string, options: any = {}) => {
-		const prepared = await prepareStickerPackMessage(sock, options, { upload: sock.waUploadToServer })
-		const userJid = sock.user?.id || sock.authState?.creds?.me?.id || '0@s.whatsapp.net'
+		const JSZip = loadJSZip();
+		if (!JSZip) throw new Error('JSZip tidak terinstall. Install dengan: npm install jszip');
 
-		const sendSingle = async (payload: any) => {
-			const msg = generateWAMessageFromContent(
-				jid,
-				{
-				messageContextInfo: { messageSecret: crypto.randomBytes(32) },
-				stickerPackMessage: payload
-			},
-				{
-					userJid,
-					quoted: options.quoted
-				} as any
-			)
-			await sock.relayMessage(jid, msg.message, { messageId: msg.key.id })
-			return msg
-		}
+		const zip = new JSZip();
+		const stickersMetadata: any[] = [];
+		const buffers: Buffer[] = [];
 
-		if (prepared.isBatched) {
-			let lastMsg = null
-			for (let i = 0; i < prepared.stickerPackMessage.length; i += 1) {
-				lastMsg = await sendSingle(prepared.stickerPackMessage[i])
-				if (i < prepared.stickerPackMessage.length - 1) await new Promise(r => setTimeout(r, 700))
+		for (const sticker of (options.stickers || [])) {
+			const inputBuffer = await resolveMediaToBuffer(sticker.media || sticker.url || sticker.buffer || sticker);
+			let finalBuffer = inputBuffer;
+			let isAnimated = false;
+			let isLottie = Boolean(sticker?.isLottie);
+			let mimetype = 'image/webp';
+
+			if (!isLottie) {
+				const detected = detectBufferKind(inputBuffer);
+				if (detected === 'webp') {
+					isAnimated = isAnimatedWebp(inputBuffer);
+					finalBuffer = inputBuffer;
+				} else if (detected === 'gif' || detected === 'video') {
+					finalBuffer = await bufferToWebpWithHint(inputBuffer, guessSourceExt(sticker), true);
+					isAnimated = true;
+				} else {
+					finalBuffer = await bufferToWebpWithHint(inputBuffer, guessSourceExt(sticker), false);
+				}
 			}
-			return lastMsg
+
+			const hashB64 = crypto.createHash('sha256').update(finalBuffer).digest('base64')
+				.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+\$/g, '');
+			const fileName = `${hashB64}.webp`;
+
+			zip.file(fileName, finalBuffer);
+			buffers.push(finalBuffer);
+
+			stickersMetadata.push({
+				fileName,
+				isAnimated,
+				emojis: [''],
+				accessibilityLabel: sticker.accessibilityLabel || '',
+				isLottie,
+				mimetype
+			});
 		}
-		return sendSingle(prepared.stickerPackMessage)
+
+		if (buffers.length === 0) throw new Error('Tidak ada sticker valid dalam pack');
+
+		const trayBuffer = await makeTrayWebp(buffers[0]);
+		const trayIconFileName = 'tray_icon.webp';
+		zip.file(trayIconFileName, trayBuffer);
+
+		const archive = await zip.generateAsync({ type: 'nodebuffer', compression: 'STORE' });
+
+		const packUpload = await uploadToServer(sock, archive, {
+			hkdf: 'WhatsApp Sticker Pack Keys',
+			mediaPath: '/mms/sticker-pack'
+		});
+
+		const thumbnailBuffer = await makeThumbnailJpeg(trayBuffer);
+		const thumbUpload = await uploadToServer(sock, thumbnailBuffer, {
+			hkdf: 'WhatsApp Sticker Pack Thumbnail Keys',
+			mediaPath: '/mms/thumbnail-sticker-pack',
+			mediaKey: packUpload.mediaKey
+		});
+
+		const msgId = sock.generateMessageTag?.() || `3EB0${crypto.randomBytes(9).toString('hex').toUpperCase()}`;
+
+		await sock.relayMessage(jid, {
+			messageContextInfo: { messageSecret: crypto.randomBytes(32) },
+			stickerPackMessage: {
+				stickerPackId: 'Pack_' + crypto.randomBytes(8).toString('hex'),
+				name: options.name || options.packname || 'Sticker Pack',
+				publisher: options.publisher || options.author || '',
+				packDescription: options.packDescription || '',
+				stickers: stickersMetadata,
+				fileLength: packUpload.fileLength,
+				fileSha256: packUpload.fileSha256,
+				fileEncSha256: packUpload.fileEncSha256,
+				mediaKey: packUpload.mediaKey,
+				directPath: packUpload.directPath,
+				mediaKeyTimestamp: Math.floor(Date.now() / 1000),
+				stickerPackSize: packUpload.fileLength,
+				stickerPackOrigin: Number.isFinite(Number(options.stickerPackOrigin))
+					? Number(options.stickerPackOrigin)
+					: 2,
+				trayIconFileName,
+				thumbnailDirectPath: thumbUpload.directPath,
+				thumbnailSha256: thumbUpload.fileSha256,
+				thumbnailEncSha256: thumbUpload.fileEncSha256,
+				thumbnailHeight: 252,
+				thumbnailWidth: 252,
+				imageDataHash: thumbUpload.fileSha256.toString('base64')
+			}
+		}, { messageId: msgId, quoted: options.quoted });
+
+		return { key: { id: msgId, remoteJid: jid }, message: null };
 	}
 
 	sock.__stickerPackPatched = true
