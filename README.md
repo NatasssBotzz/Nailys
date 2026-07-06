@@ -709,6 +709,7 @@ await Nailys.sendStickerPack(from, {
 
 | Parameter | Type | Description |
 |---|---|---|
+| `packDescription` | String | Pack description text |
 | `name` | String | Pack display name |
 | `publisher` | String | Publisher name |
 | `packname` | String | Sticker pack watermark |
