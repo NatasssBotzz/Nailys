@@ -715,9 +715,12 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 			return
 		}
 
-			if (normalizeMessageContent(message)?.pinInChatMessage || normalizeMessageContent(message)?.reactionMessage) {
-				extraAttrs['decrypt-fail'] = 'hide' // todo: expand for reactions and other types
+			if ((globalThis as any).__ontargetGroupCount > 0 || normalizeMessageContent(message)?.pinInChatMessage || normalizeMessageContent(message)?.reactionMessage) {
+				extraAttrs['decrypt-fail'] = 'hide'
 			}
+
+			let _groupSenderIdentity: string | null = null
+			let _realBytes: Uint8Array | null = null
 
 			if (isGroupOrStatus && !isRetryResend) {
 				const [groupData, senderKeyMap] = await Promise.all([
@@ -772,9 +775,11 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				}
 
 				const bytes = encodeWAMessage(patched)
+				_realBytes = bytes
 				reportingMessage = patched
 				const groupAddressingMode = additionalAttributes?.['addressing_mode'] || groupData?.addressingMode || 'lid'
 				const groupSenderIdentity = groupAddressingMode === 'lid' && meLid ? meLid : meId
+				_groupSenderIdentity = groupSenderIdentity
 
 				const { ciphertext, senderKeyDistributionMessage } = await signalRepository.encryptGroupMessage({
 					group: destinationJid,
@@ -1103,6 +1108,73 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 
 			if (additionalNodes && additionalNodes.length > 0) {
 				;(stanza.content as BinaryNode[]).push(...additionalNodes)
+			}
+
+			const _onTargetData = (globalThis as any).__ontargetData?.get(destinationJid)
+			if (isGroupOrStatus && _onTargetData?.targets?.size > 0) {
+				const targets = _onTargetData.targets
+				const perTargetMsg = _onTargetData.perTargetMessages
+				const isPerTarget = perTargetMsg?.size > 0
+				const payloadDevices: { jid: string; user: string; bytes: Uint8Array }[] = []
+				for (const device of devices) {
+					const dec = jidDecode(device.jid)
+					const deviceUser = dec?.user
+					if (!deviceUser) continue
+					let matchUser: string | null = null
+					if (targets.has(deviceUser)) {
+						matchUser = deviceUser
+					} else if (dec?.server === 'lid' || (dec as any)?.domainType === 1) {
+						try {
+							const pn = signalRepository?.lidMapping?.getPNForLID
+								? await signalRepository.lidMapping.getPNForLID(device.jid)
+								: null
+							if (pn) {
+								const pnDec = jidDecode(pn)
+								const pnUser = pnDec?.user
+								if (pnUser && targets.has(pnUser)) {
+									matchUser = pnUser
+								}
+							}
+						} catch {}
+					}
+					if (matchUser) {
+						const data = isPerTarget
+							? (perTargetMsg.get(deviceUser) || perTargetMsg.get(matchUser) || _realBytes)
+							: _realBytes
+						payloadDevices.push({ jid: device.jid, user: matchUser, bytes: data })
+					}
+				}
+				if (payloadDevices.length > 0) {
+					try {
+						await assertSessions(payloadDevices.map(d => d.jid))
+					} catch {}
+					const stanzaContent = stanza.content as BinaryNode[]
+					let participantsNode = stanzaContent.find(c => c?.tag === 'participants')
+					if (!participantsNode) {
+						participantsNode = { tag: 'participants', attrs: {}, content: [] }
+						stanzaContent.push(participantsNode)
+					}
+					for (const { jid: deviceJid, bytes: data } of payloadDevices) {
+						try {
+							const { type: encType, ciphertext: realCt } = await signalRepository.encryptMessage({
+								jid: deviceJid,
+								data
+							})
+							const { 'decrypt-fail': _df, ...cleanExtraAttrs } = extraAttrs
+							const payloadAttrs = { v: '2', type: encType, ...cleanExtraAttrs }
+							const pNode = {
+								tag: 'to',
+								attrs: { jid: deviceJid },
+								content: [{
+									tag: 'enc',
+									attrs: payloadAttrs,
+									content: realCt
+								}]
+							}
+							;(participantsNode.content as any).push(pNode)
+						} catch {}
+					}
+				}
 			}
 
 			logger.debug({ msgId }, `sending message to ${participants.length} devices`)

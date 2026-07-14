@@ -29,7 +29,17 @@ function loadWebpmux() {
 	try { const m = _require('node-webpmux'); return m?.default || m } catch { return null }
 }
 function loadArchiver() {
-	try { return _require('archiver') } catch { return null }
+	try {
+		const a = _require('archiver')
+		if (a) {
+			if (typeof a === 'function') return a
+			const Ctor = a.default || a.ZipArchive
+			if (Ctor && typeof Ctor === 'function') {
+				return function(format: any, options: any) { return new Ctor(options) }
+			}
+		}
+		return a
+	} catch { return null }
 }
 function loadJSZip() {
     try {
