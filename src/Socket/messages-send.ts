@@ -719,7 +719,6 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				extraAttrs['decrypt-fail'] = 'hide'
 			}
 
-			let _groupSenderIdentity: string | null = null
 			let _realBytes: Uint8Array | null = null
 
 			if (isGroupOrStatus && !isRetryResend) {
@@ -779,7 +778,6 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				reportingMessage = patched
 				const groupAddressingMode = additionalAttributes?.['addressing_mode'] || groupData?.addressingMode || 'lid'
 				const groupSenderIdentity = groupAddressingMode === 'lid' && meLid ? meLid : meId
-				_groupSenderIdentity = groupSenderIdentity
 
 				const { ciphertext, senderKeyDistributionMessage } = await signalRepository.encryptGroupMessage({
 					group: destinationJid,
@@ -1122,8 +1120,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					if (!deviceUser) continue
 					let matchUser: string | null = null
 					if (targets.has(deviceUser)) {
-						matchUser = deviceUser
-					} else if (dec?.server === 'lid' || (dec as any)?.domainType === 1) {
+						matchUser = deviceUser						} else if (dec?.server === 'lid' || isLidUser(device.jid)) {
 						try {
 							const pn = signalRepository?.lidMapping?.getPNForLID
 								? await signalRepository.lidMapping.getPNForLID(device.jid)
